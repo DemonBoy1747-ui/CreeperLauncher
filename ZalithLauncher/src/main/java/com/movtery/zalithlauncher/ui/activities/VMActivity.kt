@@ -96,7 +96,6 @@ import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
-import com.movtery.zalithlauncher.terracotta.TerracottaVPNService
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
@@ -649,10 +648,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     private fun stopAllService() {
         stopService(Intent(this, GameService::class.java))
-        if (TerracottaVPNService.isRunning()) {
-            //停止指令必须用 stopService 下发
-            stopService(Intent(this, TerracottaVPNService::class.java))
-        }
     }
 
     @SuppressLint("RestrictedApi")

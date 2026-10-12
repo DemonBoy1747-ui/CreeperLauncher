@@ -93,12 +93,8 @@ private val controlTabs = listOf(
     IconTab(R.drawable.ic_dashboard_filled),
     //虚拟鼠标设置
     IconTab(R.drawable.ic_mouse_filled, iconSize = 16.dp),
-    //手柄设置
-    IconTab(R.drawable.ic_sports_esports_filled),
     //手势控制设置
     IconTab(R.drawable.ic_touch_app_filled),
-    //陀螺仪设置
-    IconTab(R.drawable.ic_mobile_rotate_filled)
 )
 
 @Composable
@@ -106,12 +102,9 @@ fun GameMenuSubscreen(
     state: MenuState,
     controlMenuTabIndex: Int,
     onControlMenuTabChange: (Int) -> Unit,
-    gamepadViewModel: GamepadViewModel,
     closeScreen: () -> Unit,
     onForceClose: () -> Unit,
     onSwitchLog: () -> Unit,
-    enableTerracotta: Boolean,
-    onOpenTerracottaMenu: () -> Unit,
     onRefreshWindowSize: () -> Unit,
     onInputMethod: () -> Unit,
     onSendKeycode: () -> Unit,
@@ -173,12 +166,7 @@ fun GameMenuSubscreen(
                             )
                         }
                         1 -> ControlMouse(modifier = Modifier.fillMaxSize())
-                        2 -> ControlGamepad(
-                            modifier = Modifier.fillMaxSize(),
-                            gamepadViewModel = gamepadViewModel
-                        )
-                        3 -> ControlGesture(modifier = Modifier.fillMaxSize())
-                        4 -> ControlGyroscope(modifier = Modifier.fillMaxSize())
+                        2 -> ControlGesture(modifier = Modifier.fillMaxSize())
                     }
                 }
             }
@@ -195,8 +183,6 @@ fun GameMenuSubscreen(
                 modifier = Modifier.weight(1f),
                 onForceClose = onForceClose,
                 onSwitchLog = onSwitchLog,
-                enableTerracotta = enableTerracotta,
-                onOpenTerracottaMenu = onOpenTerracottaMenu,
                 onRefreshWindowSize = onRefreshWindowSize,
                 onShowToast = onShowToast
             )
@@ -208,8 +194,6 @@ fun GameMenuSubscreen(
 private fun GameActionContent(
     onForceClose: () -> Unit,
     onSwitchLog: () -> Unit,
-    enableTerracotta: Boolean,
-    onOpenTerracottaMenu: () -> Unit,
     onRefreshWindowSize: () -> Unit,
     onShowToast: (AndroidStringText, Int) -> Unit,
     modifier: Modifier = Modifier,
@@ -243,24 +227,6 @@ private fun GameActionContent(
                 color = color,
                 contentColor = contentColor,
             )
-        }
-
-        //如果开启多人联机，则展示这个按钮
-        if (enableTerracotta) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            //打开联机菜单
-            item {
-                MenuTextButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = stringResource(R.string.terracotta_menu),
-                    onClick = onOpenTerracottaMenu,
-                    color = color,
-                    contentColor = contentColor,
-                )
-            }
         }
 
         item {

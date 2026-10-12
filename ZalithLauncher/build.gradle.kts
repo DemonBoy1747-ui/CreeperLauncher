@@ -260,7 +260,6 @@ dependencies {
     implementation(project(":LayerController"))
     implementation(project(":ColorPicker"))
     implementation(project(":CardGrid"))
-    implementation(project(":Terracotta"))
     implementation(project(":InputMap"))
     //Utils
     implementation(libs.bytehook)

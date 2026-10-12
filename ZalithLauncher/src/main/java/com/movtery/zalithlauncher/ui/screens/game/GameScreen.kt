@@ -86,34 +86,24 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.setting.enums.toAction
-import com.movtery.zalithlauncher.terracotta.Terracotta
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MenuState
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
 import com.movtery.zalithlauncher.ui.control.MinecraftHotbar
 import com.movtery.zalithlauncher.ui.control.event.launcherEvent
 import com.movtery.zalithlauncher.ui.control.event.lwjglEvent
-import com.movtery.zalithlauncher.ui.control.gamepad.GamepadKeyListener
-import com.movtery.zalithlauncher.ui.control.gamepad.GamepadOnActionListener
-import com.movtery.zalithlauncher.ui.control.gamepad.GamepadStickMovementListener
-import com.movtery.zalithlauncher.ui.control.gamepad.SimpleGamepadCapture
-import com.movtery.zalithlauncher.ui.control.gyroscope.GyroscopeReader
-import com.movtery.zalithlauncher.ui.control.gyroscope.isGyroscopeAvailable
 import com.movtery.zalithlauncher.ui.control.hotbarPercentage
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
 import com.movtery.zalithlauncher.ui.control.mouse.SwitchableMouseLayout
 import com.movtery.zalithlauncher.ui.screens.game.elements.DraggableGameBall
 import com.movtery.zalithlauncher.ui.screens.game.elements.ForceCloseOperation
 import com.movtery.zalithlauncher.ui.screens.game.elements.GameMenuSubscreen
-import com.movtery.zalithlauncher.ui.screens.game.elements.GamepadModePromptDialog
 import com.movtery.zalithlauncher.ui.screens.game.elements.LogBox
 import com.movtery.zalithlauncher.ui.screens.game.elements.LogState
 import com.movtery.zalithlauncher.ui.screens.game.elements.ReplacementControlOperation
 import com.movtery.zalithlauncher.ui.screens.game.elements.ReplacementControlState
 import com.movtery.zalithlauncher.ui.screens.game.elements.SendKeycodeOperation
 import com.movtery.zalithlauncher.ui.screens.game.elements.SendKeycodeState
-import com.movtery.zalithlauncher.ui.screens.game.multiplayer.TerracottaOperation
-import com.movtery.zalithlauncher.ui.screens.game.multiplayer.rememberTerracottaViewModel
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
 import com.movtery.zalithlauncher.utils.currentGameDisplayLayout
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -586,13 +576,6 @@ fun GameScreen(
     val isGrabbing = remember(cursorMode) {
         cursorMode == CURSOR_DISABLED
     }
-    val terracottaViewModel = rememberTerracottaViewModel(
-        keyTag = gameHandler.toString() + "_Terracotta",
-        gameHandler = gameHandler,
-        eventViewModel = eventViewModel,
-        getUserName = getAccountName
-    )
-
     LaunchedEffect(viewModel.isEditingLayout, viewModel.gameMenuState) {
         //向VMActivity同步状态，编辑控制布局或打开游戏菜单时，不会继续处理按键事件
         val allowKeyHandle = !viewModel.isEditingLayout && viewModel.gameMenuState != MenuState.SHOW
@@ -609,7 +592,6 @@ fun GameScreen(
         operation = viewModel.forceCloseState,
         onChange = { viewModel.forceCloseState = it },
         onForceClose = {
-            Terracotta.setWaiting(false)
             ZLNativeInvoker.jvmExit(0, false)
         },
         text = stringResource(R.string.game_menu_option_force_close_text)
@@ -622,12 +604,7 @@ fun GameScreen(
         replacementControl = { viewModel.replaceControlLayout(it) }
     )
 
-    TerracottaOperation(
-        viewModel = terracottaViewModel,
-        onShowToast = { text, duration ->
-            eventViewModel.sendToast(text, duration)
-        }
-    )
+
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxSize()
@@ -635,37 +612,6 @@ fun GameScreen(
         val screenSize = rememberBoxSize()
 
         if (!viewModel.isEditingLayout) {
-            if (AllSettings.gamepadControl.state) {
-                GamepadOnActionListener(
-                    gamepadViewModel = gamepadViewModel,
-                    onAction = {
-                        viewModel.switchControlLayer(HideLayerWhen.WhenGamepad)
-                    }
-                )
-            }
-
-            if (AllSettings.gamepadControl.state && gamepadViewModel.gamepadEngaged) {
-                //手柄事件监听
-                GamepadKeyListener(
-                    gamepadViewModel = gamepadViewModel,
-                    isGrabbing = isGrabbing,
-                    onKeyEvent = { events, pressed ->
-                        events.forEach { event ->
-                            viewModel.onKeyEvent(event, pressed)
-                        }
-                    }
-                )
-
-                //手柄摇杆控制移动事件监听
-                GamepadStickMovementListener(
-                    gamepadViewModel = gamepadViewModel,
-                    isGrabbing = isGrabbing,
-                    onKeyEvent = { event, pressed ->
-                        viewModel.onKeyEvent(event, pressed)
-                    }
-                )
-            }
-
             //控制布局层
             ControlBoxLayout(
                 modifier = Modifier.fillMaxSize(),
@@ -696,7 +642,7 @@ fun GameScreen(
                     },
                     onMouseMoved = { viewModel.switchControlLayer(HideLayerWhen.WhenMouse) },
                     onTouch = { viewModel.switchControlLayer(HideLayerWhen.None) },
-                    gamepadViewModel = gamepadViewModel.takeIf { AllSettings.gamepadControl.state }
+                    gamepadViewModel = null
                 )
             }
 
@@ -714,25 +660,6 @@ fun GameScreen(
                 displayOffset = gameDisplayLayout.offset,
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) }
-            )
-        }
-
-        //陀螺仪控制
-        val isGyroscopeAvailable = remember(context) {
-            isGyroscopeAvailable(context = context)
-        }
-        if (isGrabbing && isGyroscopeAvailable && AllSettings.gyroscopeControl.state) {
-            GyroscopeReader(
-                xEvent = { delta ->
-                    CallbackBridge.sendCursorDelta(if (AllSettings.gyroscopeInvertX.state) -delta else delta, 0f)
-                },
-                yEvent = { delta ->
-                    CallbackBridge.sendCursorDelta(0f, if (AllSettings.gyroscopeInvertY.state) delta else -delta)
-                },
-                sampleRate = AllSettings.gyroscopeSampleRate.state,
-                smoothing = AllSettings.gyroscopeSmoothing.state,
-                smoothingWindow = AllSettings.gyroscopeSmoothingWindow.state,
-                sensitivity = AllSettings.gyroscopeSensitivity.state / 100f
             )
         }
 
@@ -758,12 +685,9 @@ fun GameScreen(
             state = viewModel.gameMenuState,
             controlMenuTabIndex = viewModel.controlMenuTabIndex,
             onControlMenuTabChange = { viewModel.controlMenuTabIndex = it },
-            gamepadViewModel = gamepadViewModel,
             closeScreen = { viewModel.gameMenuState = MenuState.HIDE },
             onForceClose = { viewModel.forceCloseState = ForceCloseOperation.Show },
             onSwitchLog = { onLogStateChange(logState.next()) },
-            enableTerracotta = AllSettings.enableTerracotta.state,
-            onOpenTerracottaMenu = { terracottaViewModel.openMenu() },
             onRefreshWindowSize = { eventViewModel.sendEvent(EventViewModel.Event.Game.RefreshSize) },
             onInputMethod = {
                 eventViewModel.sendEvent(EventViewModel.Event.Game.SwitchIme(null))
@@ -777,21 +701,6 @@ fun GameScreen(
             },
             onShowToast = { text, duration ->
                 eventViewModel.sendToast(text, duration)
-            }
-        )
-
-        if (AllSettings.gamepadControl.state) {
-            //手柄事件捕获层
-            SimpleGamepadCapture(
-                gamepadViewModel = gamepadViewModel
-            )
-        }
-
-        //手柄输入模式选择询问
-        GamepadModePromptDialog(
-            visible = gamepadViewModel.modePromptVisible,
-            onConfirm = { mode ->
-                gamepadViewModel.confirmModePrompt(mode)
             }
         )
 
