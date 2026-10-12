@@ -213,9 +213,6 @@ private fun NavigationUI(
                 entry<NormalNavKey.Settings.Control> {
                     ControlSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel, submitError)
                 }
-                entry<NormalNavKey.Settings.Gamepad> {
-                    GamepadSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel)
-                }
                 entry<NormalNavKey.Settings.Launcher> {
                     LauncherSettingsScreen(
                         key = key,
