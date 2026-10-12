@@ -410,9 +410,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
         window?.apply {
             setBackgroundDrawable(NativeColor.BLACK.toDrawable())
-            if (AllSettings.sustainedPerformance.getValue()) {
-                setSustainedPerformanceMode(true)
-            }
             addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) // 防止系统息屏
         }
 
