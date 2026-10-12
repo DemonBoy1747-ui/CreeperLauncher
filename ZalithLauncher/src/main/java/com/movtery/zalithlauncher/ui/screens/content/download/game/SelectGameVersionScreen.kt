@@ -129,8 +129,6 @@ private sealed interface VersionState {
 private data class VersionFilter(
     val release: Boolean = true,
     val snapshot: Boolean = false,
-    val aprilFools: Boolean = false,
-    val old: Boolean = false,
     val id: String = ""
 )
 
@@ -335,8 +333,6 @@ private fun List<MinecraftVersion>.filterVersions(
     version.isType(
         release = versionFilter.release,
         snapshot = versionFilter.snapshot,
-        aprilFools = versionFilter.aprilFools,
-        old = versionFilter.old
     )
 }.filter { version ->
     //Fix：单独过滤版本名称
@@ -385,20 +381,6 @@ private fun VersionHeader(
                             onVersionFilterChange(versionFilter.copy(snapshot = versionFilter.snapshot.not()))
                         },
                         text = stringResource(R.string.download_game_type_snapshot)
-                    )
-                    VersionTypeItem(
-                        selected = versionFilter.aprilFools,
-                        onClick = {
-                            onVersionFilterChange(versionFilter.copy(aprilFools = versionFilter.aprilFools.not()))
-                        },
-                        text = stringResource(R.string.download_game_type_april_fools)
-                    )
-                    VersionTypeItem(
-                        selected = versionFilter.old,
-                        onClick = {
-                            onVersionFilterChange(versionFilter.copy(old = versionFilter.old.not()))
-                        },
-                        text = stringResource(R.string.download_game_type_old)
                     )
                 }
 
