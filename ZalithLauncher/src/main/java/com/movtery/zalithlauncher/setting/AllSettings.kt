@@ -94,16 +94,6 @@ object AllSettings : SettingsRegistry() {
     val useSurfaceView = boolSetting("useSurfaceView", false)
 
     /**
-     * 持续性能模式
-     */
-    val sustainedPerformance = boolSetting("sustainedPerformance", false)
-
-    /**
-     * 使用系统的 Vulkan 驱动
-     */
-    val zinkPreferSystemDriver = boolSetting("zinkPreferSystemDriver", false)
-
-    /**
      * Zink 垂直同步
      */
     val vsyncInZink = boolSetting("vsyncInZink", false)
@@ -319,41 +309,6 @@ object AllSettings : SettingsRegistry() {
      * 手势控制长按延迟
      */
     val gestureLongPressDelay = intSetting("gestureLongPressDelay", 300, 100..1000)
-
-    /**
-     * 陀螺仪控制
-     */
-    val gyroscopeControl = boolSetting("gyroscopeControl", false)
-
-    /**
-     * 陀螺仪控制灵敏度
-     */
-    val gyroscopeSensitivity = intSetting("gyroscopeSensitivity", 100, 25..300)
-
-    /**
-     * 陀螺仪采样率
-     */
-    val gyroscopeSampleRate = intSetting("gyroscopeSampleRate", 16, 5..50)
-
-    /**
-     * 陀螺仪数值平滑
-     */
-    val gyroscopeSmoothing = boolSetting("gyroscopeSmoothing", true)
-
-    /**
-     * 陀螺仪平滑处理的窗口大小
-     */
-    val gyroscopeSmoothingWindow = intSetting("gyroscopeSmoothingWindow", 4, 2..10)
-
-    /**
-     * 反转 X 轴
-     */
-    val gyroscopeInvertX = boolSetting("gyroscopeInvertX", false)
-
-    /**
-     * 反转 Y 轴
-     */
-    val gyroscopeInvertY = boolSetting("gyroscopeInvertY", false)
 
     //Launcher
     /**
