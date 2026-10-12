@@ -96,7 +96,6 @@ import com.movtery.zalithlauncher.ui.screens.content.FileSelectorScreen
 import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
 import com.movtery.zalithlauncher.ui.screens.content.LicenseScreen
 import com.movtery.zalithlauncher.ui.screens.content.LogViewScreen
-import com.movtery.zalithlauncher.ui.screens.content.MultiplayerScreen
 import com.movtery.zalithlauncher.ui.screens.content.SettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionExportScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionSettingsScreen
@@ -196,12 +195,6 @@ fun MainScreen(
                 toDownloadScreen = {
                     screenBackStackModel.navigateToDownload()
                 },
-                toMultiplayerScreen = {
-                    screenBackStackModel.mainScreen.removeAndNavigateTo(
-                        removes = screenBackStackModel.clearBeforeNavKeys,
-                        screenKey = NormalNavKey.Multiplayer
-                    )
-                },
                 openFileManager = {
                     eventViewModel.sendEvent(
                         EventViewModel.Event.OpenFileManager(
@@ -257,13 +250,11 @@ private fun <E: TitledNavKey> TopBar(
     toMainScreen: () -> Unit,
     toSettingsScreen: () -> Unit,
     toDownloadScreen: () -> Unit,
-    toMultiplayerScreen: () -> Unit,
     openFileManager: () -> Unit,
     changeExpandedState: () -> Unit,
 ) {
     val festivals = LocalFestivals.current
 
-    val inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer
     val inDownloadScreen = mainScreenKey is NestedNavKey.Download
     val inSettingsScreen = mainScreenKey is NestedNavKey.Settings
 
@@ -415,15 +406,6 @@ private fun <E: TitledNavKey> TopBar(
                         contentDescription = null
                     )
                 }
-
-                TopBarRailItem(
-                    selected = inMultiplayerScreen,
-                    painter = painterResource(R.drawable.ic_group_filled),
-                    text = stringResource(R.string.terracotta),
-                    onClick = {
-                        if (!inMultiplayerScreen) toMultiplayerScreen()
-                    },
-                )
 
                 TopBarRailItem(
                     selected = inDownloadScreen,
@@ -643,12 +625,6 @@ private fun NavigationUI(
                         assetInfoScreenKey = key.currentKey,
                         eventViewModel = eventViewModel,
                         submitError = submitError,
-                    )
-                }
-                entry<NormalNavKey.Multiplayer> {
-                    MultiplayerScreen(
-                        backScreenViewModel = screenBackStackModel,
-                        eventViewModel = eventViewModel
                     )
                 }
                 entry<NormalNavKey.LogView> { key ->

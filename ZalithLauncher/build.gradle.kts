@@ -261,6 +261,7 @@ dependencies {
     implementation(project(":ColorPicker"))
     implementation(project(":CardGrid"))
     implementation(project(":InputMap"))
+    implementation(project(":Guide"))
     //Utils
     implementation(libs.bytehook)
     implementation(libs.gson)
