@@ -123,7 +123,6 @@ private sealed interface VersionState {
  * 版本过滤条件
  * @param release 是否保留正式版本
  * @param snapshot 是否保留快照版本
- * @param old 是否保留旧版本
  * @param id 搜索并过滤版本ID
  */
 private data class VersionFilter(
@@ -333,6 +332,8 @@ private fun List<MinecraftVersion>.filterVersions(
     version.isType(
         release = versionFilter.release,
         snapshot = versionFilter.snapshot,
+        aprilFools = true,
+        old = true,
     )
 }.filter { version ->
     //Fix：单独过滤版本名称
