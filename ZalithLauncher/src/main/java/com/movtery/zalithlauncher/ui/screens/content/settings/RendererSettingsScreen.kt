@@ -175,39 +175,6 @@ fun RendererSettingsScreen(
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.vulkanDriver,
-                        items = DriverPluginManager.getDriverList(),
-                        title = stringResource(R.string.settings_renderer_global_vulkan_driver_title),
-                        getItemText = { it.name },
-                        getItemId = { it.id },
-                        getItemSummary = {
-                            DriverSummaryLayout(it)
-                        },
-                        trailingIcon = {
-                            IconButton(
-                                onClick = {
-                                    eventViewModel.sendDLPlugin(
-                                        githubLink = URL_GITHUB_DRIVER_PLUGINS,
-                                        cloudDrives = listOf(
-                                            EventViewModel.Event.DownloadPlugins.CloudDrive(
-                                                language = "zh",
-                                                link = URL_CLOUD_DRIVE_DRIVER_PLUGINS
-                                            )
-                                        )
-                                    )
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_download_2_filled),
-                                    contentDescription = stringResource(R.string.generic_download)
-                                )
-                            }
-                        }
-                    )
-
-                    ListSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
                         unit = AllSettings.graphicsApi,
                         items = GraphicsApi.entries,
@@ -308,44 +275,6 @@ fun RendererSettingsScreen(
                         .fillMaxWidth()
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
                 ) {
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Top,
-                        unit = AllSettings.sustainedPerformance,
-                        title = stringResource(R.string.settings_renderer_sustained_performance_title),
-                        summary = stringResource(R.string.settings_renderer_sustained_performance_summary)
-                    )
-
-                    if (checkVulkanSupport(LocalContext.current.packageManager)) {
-                        var adrenoGPUAlert by remember { mutableStateOf(false) }
-
-                        SwitchSettingsCard(
-                            modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Middle,
-                            unit = AllSettings.zinkPreferSystemDriver,
-                            title = stringResource(R.string.settings_renderer_vulkan_driver_system_title),
-                            summary = stringResource(R.string.settings_renderer_vulkan_driver_system_summary),
-                            onCheckedChange = { checked ->
-                                if (checked && isAdrenoGPU()) adrenoGPUAlert = true
-                            }
-                        )
-
-                        if (adrenoGPUAlert) {
-                            SimpleAlertDialog(
-                                title = stringResource(R.string.generic_warning),
-                                text = stringResource(R.string.settings_renderer_zink_driver_adreno),
-                                onConfirm = {
-                                    AllSettings.zinkPreferSystemDriver.save(true)
-                                    adrenoGPUAlert = false
-                                },
-                                onDismiss = {
-                                    AllSettings.zinkPreferSystemDriver.save(false)
-                                    adrenoGPUAlert = false
-                                }
-                            )
-                        }
-                    }
-
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
