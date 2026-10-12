@@ -332,8 +332,9 @@ private fun List<MinecraftVersion>.filterVersions(
     version.isType(
         release = versionFilter.release,
         snapshot = versionFilter.snapshot,
-        aprilFools = true,
-        old = true,
+        //Lite: 已移除“愚人节版”与“旧版本”筛选项，这两类版本不再显示
+        aprilFools = false,
+        old = false,
     )
 }.filter { version ->
     //Fix：单独过滤版本名称
