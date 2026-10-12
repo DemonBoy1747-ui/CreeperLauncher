@@ -38,7 +38,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.movtery.guide.GuideHost
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
 import com.movtery.zalithlauncher.coroutine.Task
@@ -62,8 +61,6 @@ import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
-import com.movtery.zalithlauncher.ui.guide.NextTipLabel
-import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.Background
@@ -312,11 +309,6 @@ class MainActivity : BaseAppCompatActivity() {
             ) {
                 ObserveFullScreenSetting(AllSettings.launcherFullScreen.state)
 
-                val guides = rememberAppGuides(eventViewModel)
-                GuideHost(
-                    guides.mainScreen,
-                    nextTip = { NextTipLabel(it) }
-                ) {
                     Background(
                         modifier = Modifier.fillMaxSize(),
                         viewModel = backgroundViewModel
@@ -385,8 +377,6 @@ class MainActivity : BaseAppCompatActivity() {
                             }
                         )
                     }
-                }
-
                 //显示赞助支持的小弹窗
                 if (!isImporting && finishedGame.state >= 100 && showSponsorship.state) {
                     SimpleAlertDialog(
