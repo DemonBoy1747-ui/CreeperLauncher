@@ -113,7 +113,6 @@ import com.movtery.zalithlauncher.utils.getParcelableSafely
 import com.movtery.zalithlauncher.utils.rememberGameRenderSize
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
-import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -187,7 +186,6 @@ class VMViewModel : ViewModel() {
         bundle: Bundle,
         errorViewModel: ErrorViewModel,
         eventViewModel: EventViewModel,
-        gamepadViewModel: GamepadViewModel,
         exitListener: (Int, Boolean) -> Unit,
     ) {
         if (_session != null) return
@@ -226,7 +224,6 @@ class VMViewModel : ViewModel() {
                         config = config,
                         errorViewModel = errorViewModel,
                         eventViewModel = eventViewModel,
-                        gamepadViewModel = gamepadViewModel,
                         gameLauncher = launcher
                     ) { code ->
                         exitListener(code, false)
@@ -347,7 +344,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     /**
      * 手柄状态存储 ViewModel
      */
-    private val gamepadViewModel: GamepadViewModel by viewModels()
 
     private val vmViewModel: VMViewModel by viewModels()
 
@@ -388,7 +384,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
             bundle = bundle,
             errorViewModel = errorViewModel,
             eventViewModel = eventViewModel,
-            gamepadViewModel = gamepadViewModel,
             exitListener = { exitCode: Int, isSignal: Boolean ->
                 stopAllService()
                 if (exitCode != 0) {
@@ -730,10 +725,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         val nativeSurface = Surface(surface)
         voteMaxDisplayRefreshRate(nativeSurface)
         SdlBridge.prepareSurface(this, nativeSurface, gameSurfaceView?.parent as? ViewGroup, surface)
-        //游戏请求 GLFW direct gamepad 时的通知接收方
-        CallbackBridge.setDirectGamepadEnableHandler {
-            LoggerBridge.append("ZalithLauncher: Direct gamepad handler enabled")
-        }
         if (vmViewModel.isRunning) {
             ZLBridge.setupBridgeWindow(nativeSurface)
             return

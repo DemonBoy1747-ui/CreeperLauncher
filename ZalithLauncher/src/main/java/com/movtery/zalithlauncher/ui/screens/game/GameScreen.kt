@@ -109,7 +109,6 @@ import com.movtery.zalithlauncher.utils.currentGameDisplayLayout
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
-import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import com.movtery.zalithlauncher.viewmodel.sendToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -565,7 +564,6 @@ fun GameScreen(
     onInputAreaRectUpdated: (IntRect?) -> Unit,
     getAccountName: () -> String?,
     eventViewModel: EventViewModel,
-    gamepadViewModel: GamepadViewModel,
 ) {
     val context = LocalContext.current
     val viewModel = rememberGameViewModel(version) { mode ->
@@ -642,7 +640,6 @@ fun GameScreen(
                     },
                     onMouseMoved = { viewModel.switchControlLayer(HideLayerWhen.WhenMouse) },
                     onTouch = { viewModel.switchControlLayer(HideLayerWhen.None) },
-                    gamepadViewModel = null
                 )
             }
 
@@ -905,7 +902,6 @@ private fun MouseControlLayout(
     onReleasePointer: (PointerId) -> Unit,
     onMouseMoved: () -> Unit,
     onTouch: () -> Unit,
-    gamepadViewModel: GamepadViewModel?
 ) {
     Box(
         modifier = modifier
@@ -933,7 +929,6 @@ private fun MouseControlLayout(
             cursorMode = cursorMode,
             onTouch = onTouch,
             onMouse = onMouseMoved,
-            gamepadViewModel = gamepadViewModel,
             onTap = { position ->
                 val gamePosition = currentGameDisplayLayout(screenSize).mapToGame(position)
                 CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), gamePosition.x, gamePosition.y)
