@@ -55,6 +55,13 @@ android {
             keyAlias = "movtery_zalith"
             keyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
         }
+        // Keep the same signing identity as the previously installed Lite APK.
+        create("debugBuild") {
+            storeFile = file("zalith_launcher_debug.jks")
+            storePassword = defaultStorePassword
+            keyAlias = "movtery_zalith_debug"
+            keyPassword = defaultKeyPassword
+        }
     }
 
     defaultConfig {
@@ -70,7 +77,7 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("debugBuild")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
