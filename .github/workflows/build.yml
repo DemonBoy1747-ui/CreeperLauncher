@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: ["all", "arm", "arm64", "x86", "x86_64"]
+        arch: ["arm64"]
       fail-fast: false
 
     env:
@@ -49,31 +49,30 @@ jobs:
         with:
           add-job-summary: "on-failure"
 
-      - name: Build APK for ${{ matrix.arch }}
+      - name: Build APK for arm64-v8a
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=arm64
 
-      - name: Upload Release APK for ${{ matrix.arch }}
+      - name: Upload Release APK for arm64-v8a
         if: inputs.variant == 'Release'
-        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: release apk (${{ matrix.arch }})
+          name: release apk (arm64)
           path: ZalithLauncher/build/outputs/apk/release/*.apk
 
-      - name: Upload Release Mapping for ${{ matrix.arch }}
+      - name: Upload Release Mapping for arm64-v8a
         if: inputs.variant == 'Release'
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: mapping (${{ matrix.arch }})
+          name: mapping (arm64)
           path: ZalithLauncher/build/outputs/mapping/release/mapping.txt
 
-      - name: Upload Debug APK for ${{ matrix.arch }}
+      - name: Upload Debug APK for arm64-v8a
         if: inputs.variant == 'Debug'
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: debug apk (${{ matrix.arch }})
+          name: debug apk (arm64)
           path: ZalithLauncher/build/outputs/apk/debug/*.apk
