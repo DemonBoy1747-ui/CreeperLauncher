@@ -18,6 +18,10 @@ jobs:
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+      LITE_KEYSTORE_BASE64: ${{ secrets.LITE_KEYSTORE_BASE64 }}
+      LITE_STORE_PASSWORD: ${{ secrets.LITE_STORE_PASSWORD }}
+      LITE_KEY_PASSWORD: ${{ secrets.LITE_KEY_PASSWORD }}
+      LITE_KEY_ALIAS: ${{ secrets.LITE_KEY_ALIAS }}
 
   Upload-to-Release:
     needs: Build

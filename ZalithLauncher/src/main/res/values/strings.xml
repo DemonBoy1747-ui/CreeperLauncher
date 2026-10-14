@@ -1518,4 +1518,5 @@
     <string name="guide_tip_blank">Tap any blank area to continue to the next step</string>
     <!-- Next-step hint shown near a screen corner during the final guide step; tapping any blank area finishes the whole guide -->
     <string name="guide_tip_finish">Tap any blank area to finish the guide</string>
+    <string name="launcher_unofficial_notice">ZalithLauncher Lite (unofficial modified version)</string>
 </resources>

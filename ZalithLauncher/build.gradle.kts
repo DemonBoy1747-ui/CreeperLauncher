@@ -55,6 +55,13 @@ android {
             keyAlias = "movtery_zalith"
             keyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
         }
+        //Lite: key milik sendiri. File dibuat CI dari secret LITE_KEYSTORE_BASE64 (atau taruh manual saat build lokal)
+        create("liteRelease") {
+            storeFile = file("lite_release.jks")
+            storePassword = System.getenv("LITE_STORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("LITE_KEY_ALIAS") ?: "lite"
+            keyPassword = System.getenv("LITE_KEY_PASSWORD") ?: ""
+        }
         // Keep the same signing identity as the previously installed Lite APK.
         create("debugBuild") {
             storeFile = file("zalith_launcher_debug.jks")
@@ -77,7 +84,13 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("debugBuild")
+            //Lite: pakai key sendiri jika tersedia, kalau tidak ada fallback ke debugBuild agar build tidak gagal
+            signingConfig = if (file("lite_release.jks").isFile) {
+                signingConfigs.getByName("liteRelease")
+            } else {
+                logger.warn("BUILD: lite_release.jks not found, Release is signed with the debugBuild key.")
+                signingConfigs.getByName("debugBuild")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
