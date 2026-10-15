@@ -73,8 +73,6 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.cardgrid.state.rememberCardGridState
-import com.movtery.guide.GuideSide
-import com.movtery.guide.guideNode
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
@@ -88,7 +86,6 @@ import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.SkinPreview3D
-import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
@@ -121,13 +118,7 @@ fun LauncherScreen(
     onLaunchGame: (Version?) -> Unit,
     onQuickPlayServer: (Version?, String) -> Unit,
     onOpenLink: (String) -> Unit,
-    startGuideOnce: (GuideKeys.Keys) -> Unit,
 ) {
-    LaunchedEffect(Unit) {
-        //发起新手引导
-        startGuideOnce(GuideKeys.Main)
-    }
-
     BaseScreen(
         screenKey = NormalNavKey.LauncherMain,
         currentKey = backStackViewModel.mainScreen.currentKey
@@ -197,10 +188,6 @@ fun LauncherScreen(
                 ) {
                 ContentMenu(
                     modifier = Modifier
-                        .guideNode(
-                            key = GuideKeys.Main.Step.CardTip,
-                            holeRadius = 0.dp
-                        )
                         .weight(ContentWeight)
                         .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
                     isVisible = isVisible,
@@ -504,7 +491,6 @@ private fun ActionMenuCardContent(
     BackgroundCard(
         modifier = Modifier
             .actionMenuDragAnchor()
-            .guideNode(GuideKeys.Main.Step.CardDrag)
             .then(modifier),
         shape = MaterialTheme.shapes.extraLarge
     ) {
@@ -520,10 +506,7 @@ private fun ActionMenuCardContent(
                         bottom.linkTo(versionManagerLayout.top)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
-                    }.guideNode(
-                        key = GuideKeys.Main.Step.Account,
-                        preferSide = GuideSide.Below
-                    ),
+                    },
                 account = account,
                 onClick = toAccountManageScreen
             )
@@ -563,10 +546,6 @@ private fun ActionMenuTallerContent(
     Column(
         modifier = Modifier
             .actionMenuDragAnchor()
-            .guideNode(
-                key = GuideKeys.Main.Step.CardDrag,
-                holeRadius = 0.dp,
-            )
             .then(modifier),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -586,11 +565,6 @@ private fun ActionMenuTallerContent(
 
         BackgroundCard(
             modifier = Modifier
-                .guideNode(
-                    key = GuideKeys.Main.Step.Account,
-                    preferSide = GuideSide.Above,
-                    holeRadius = 28.dp
-                )
                 .fillMaxWidth(),
             shape = MaterialTheme.shapes.extraLarge,
             onClick = toAccountManageScreen
@@ -683,9 +657,6 @@ private fun VersionManagerLayout(
                 onLongClick = {
                     if (version != null) openListMenu()
                 }
-            ).guideNode(
-                key = GuideKeys.Main.Step.VersionList,
-                preferSide = GuideSide.Above,
             ).padding(PaddingValues(all = 8.dp))
     ) {
         if (isRefreshing) {
