@@ -724,7 +724,8 @@
     <string name="about_launcher_title">Tentang Launcher</string>
     <string name="about_launcher_version">Versi Launcher: %s</string>
     <string name="about_launcher_author_movtery_title">MovTery</string>
-    <string name="about_launcher_author_movtery_text">Pembuat %s</string>
+    <string name="about_launcher_author_movtery_text">Pembuat Zalith Launcher</string>
+    <string name="about_launcher_maintainer_keda_text">Maintainer ZalithLauncher2 Lite</string>
     <string name="about_launcher_project_link">Link Project</string>
     <string name="about_sponsor">Dukung Dengan Sponsor</string>
     <string name="about_acknowledgements_title">Ucapan Terima Kasih Kepada</string>
@@ -1425,5 +1426,5 @@
     <string name="cape_name_twisted">Twisted</string>
     <string name="cape_name_hero">Hero</string>
     <string name="cape_name_aurora">Aurora</string>
-    <string name="launcher_unofficial_notice">ZalithLauncher Lite (versi modifikasi tidak resmi)</string>
+    <string name="launcher_unofficial_notice">ZalithLauncherLite (versi modifikasi tidak resmi)</string>
 </resources>
