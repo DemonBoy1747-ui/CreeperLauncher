@@ -17,6 +17,8 @@ import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
 import android.os.IBinder
+import android.os.Handler
+import android.os.Looper
 import android.util.DisplayMetrics
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
@@ -98,6 +100,12 @@ class RecorderService : Service() {
             videoRecorder.setVideoEncodingBitRate((width * height * fps * 0.12).toInt().coerceAtLeast(2_000_000))
             videoRecorder.setOutputFile(outputFile!!.absolutePath)
             videoRecorder.prepare()
+            // Android 14 requires a callback to be registered before capture starts.
+            projection?.registerCallback(object : MediaProjection.Callback() {
+                override fun onStop() {
+                    stopSelf()
+                }
+            }, Handler(Looper.getMainLooper()))
             val surface = videoRecorder.surface
             virtualDisplay = projection?.createVirtualDisplay(
                 "ZalithRecorder", width, height, metrics.densityDpi,
