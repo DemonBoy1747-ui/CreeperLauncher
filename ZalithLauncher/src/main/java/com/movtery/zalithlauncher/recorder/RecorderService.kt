@@ -37,6 +37,7 @@ class RecorderService : Service() {
     private var virtualDisplay: VirtualDisplay? = null
     private var outputFile: File? = null
     private var isPaused = false
+    private var recordingStarted = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -62,6 +63,8 @@ class RecorderService : Service() {
             @Suppress("DEPRECATION")
             intent.getParcelableExtra(EXTRA_RESULT_DATA)
         } ?: run {
+            android.util.Log.e(TAG, "Screen capture permission data is missing")
+            stopForeground(STOP_FOREGROUND_REMOVE)
             stopSelf()
             return
         }
@@ -69,14 +72,15 @@ class RecorderService : Service() {
         try {
             val manager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             projection = manager.getMediaProjection(resultCode, resultData)
+                ?: error("MediaProjectionManager returned null")
             val metrics = DisplayMetrics()
             @Suppress("DEPRECATION")
             (getSystemService(Context.WINDOW_SERVICE) as WindowManager).defaultDisplay.getRealMetrics(metrics)
 
             val sourceWidth = metrics.widthPixels.coerceAtLeast(2)
             val sourceHeight = metrics.heightPixels.coerceAtLeast(2)
-            val configWidth = intent.getIntExtra(EXTRA_WIDTH, 1280)
-            val configHeight = intent.getIntExtra(EXTRA_HEIGHT, 720)
+            val configWidth = intent.getIntExtra(EXTRA_WIDTH, 1280).coerceAtLeast(2)
+            val configHeight = intent.getIntExtra(EXTRA_HEIGHT, 720).coerceAtLeast(2)
             val scale = minOf(configWidth.toFloat() / sourceWidth, configHeight.toFloat() / sourceHeight)
             val width = ((sourceWidth * scale).toInt() / 2 * 2).coerceAtLeast(2)
             val height = ((sourceHeight * scale).toInt() / 2 * 2).coerceAtLeast(2)
@@ -92,6 +96,12 @@ class RecorderService : Service() {
                 MediaRecorder()
             }
             recorder = videoRecorder
+            videoRecorder.setOnErrorListener { _, what, extra ->
+                android.util.Log.e(TAG, "MediaRecorder error: what=$what, extra=$extra")
+            }
+            videoRecorder.setOnInfoListener { _, what, extra ->
+                android.util.Log.i(TAG, "MediaRecorder info: what=$what, extra=$extra")
+            }
             videoRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE)
             videoRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
             videoRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264)
@@ -100,50 +110,98 @@ class RecorderService : Service() {
             videoRecorder.setVideoEncodingBitRate((width * height * fps * 0.12).toInt().coerceAtLeast(2_000_000))
             videoRecorder.setOutputFile(outputFile!!.absolutePath)
             videoRecorder.prepare()
+            android.util.Log.i(TAG, "MediaRecorder prepared: ${width}x${height} at ${fps} FPS; output=${outputFile!!.absolutePath}")
+
             // Android 14 requires a callback to be registered before capture starts.
             projection?.registerCallback(object : MediaProjection.Callback() {
                 override fun onStop() {
+                    android.util.Log.w(TAG, "MediaProjection stopped by the system")
                     stopSelf()
                 }
             }, Handler(Looper.getMainLooper()))
-            val surface = videoRecorder.surface
+
             virtualDisplay = projection?.createVirtualDisplay(
                 "ZalithRecorder", width, height, metrics.densityDpi,
-                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, surface, null, null
-            )
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR, videoRecorder.surface, null, null
+            ) ?: error("MediaProjection failed to create VirtualDisplay")
+            android.util.Log.i(TAG, "VirtualDisplay created: ${width}x${height}, densityDpi=${metrics.densityDpi}")
+
             videoRecorder.start()
+            recordingStarted = true
+            android.util.Log.i(TAG, "Recording started successfully")
             updateNotification("Recording screen")
         } catch (error: Exception) {
-            stopRecording()
             android.util.Log.e(TAG, "Unable to start recording", error)
+            stopRecording()
         }
     }
 
     private fun pauseRecording() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && recorder != null && !isPaused) {
-            runCatching { recorder?.pause(); isPaused = true; updateNotification("Recording paused") }
-                .onFailure { android.util.Log.e(TAG, "Pause failed", it) }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && recordingStarted && recorder != null && !isPaused) {
+            runCatching {
+                recorder?.pause()
+                isPaused = true
+                updateNotification("Recording paused")
+                android.util.Log.i(TAG, "Recording paused")
+            }.onFailure { android.util.Log.e(TAG, "Pause failed", it) }
         }
     }
 
     private fun resumeRecording() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && recorder != null && isPaused) {
-            runCatching { recorder?.resume(); isPaused = false; updateNotification("Recording screen") }
-                .onFailure { android.util.Log.e(TAG, "Resume failed", it) }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && recordingStarted && recorder != null && isPaused) {
+            runCatching {
+                recorder?.resume()
+                isPaused = false
+                updateNotification("Recording screen")
+                android.util.Log.i(TAG, "Recording resumed")
+            }.onFailure { android.util.Log.e(TAG, "Resume failed", it) }
         }
     }
 
     private fun stopRecording() {
-        runCatching { recorder?.stop() }
-        runCatching { recorder?.reset() }
-        runCatching { recorder?.release() }
+        val recorderToStop = recorder
+        var stopSucceeded = false
+
+        if (recorderToStop != null && recordingStarted) {
+            try {
+                recorderToStop.stop()
+                stopSucceeded = true
+                val file = outputFile
+                android.util.Log.i(
+                    TAG,
+                    "MediaRecorder stopped successfully; outputBytes=${file?.length() ?: 0}, output=${file?.absolutePath}"
+                )
+            } catch (error: Exception) {
+                android.util.Log.e(TAG, "MediaRecorder.stop() failed; MP4 may be incomplete", error)
+            }
+        } else {
+            android.util.Log.w(TAG, "Stopping recorder before recording had started")
+        }
+        recordingStarted = false
+
+        runCatching { recorderToStop?.reset() }
+            .onFailure { android.util.Log.e(TAG, "MediaRecorder reset failed", it) }
+        runCatching { recorderToStop?.release() }
+            .onFailure { android.util.Log.e(TAG, "MediaRecorder release failed", it) }
         recorder = null
+
         runCatching { virtualDisplay?.release() }
+            .onFailure { android.util.Log.e(TAG, "VirtualDisplay release failed", it) }
         virtualDisplay = null
         runCatching { projection?.stop() }
+            .onFailure { android.util.Log.e(TAG, "MediaProjection stop failed", it) }
         projection = null
         isPaused = false
-        outputFile?.let { if (!it.exists() || it.length() <= 0L) it.delete() }
+
+        outputFile?.let { file ->
+            if (!stopSucceeded || !file.exists() || file.length() <= 0L) {
+                android.util.Log.e(TAG, "Deleting incomplete recording: exists=${file.exists()}, bytes=${file.length()}")
+                runCatching { file.delete() }
+                    .onFailure { android.util.Log.e(TAG, "Could not delete incomplete recording", it) }
+            } else {
+                android.util.Log.i(TAG, "Recording file finalized: ${file.absolutePath} (${file.length()} bytes)")
+            }
+        }
         outputFile = null
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
@@ -169,7 +227,7 @@ class RecorderService : Service() {
     }
 
     override fun onDestroy() {
-        if (recorder != null) stopRecording()
+        if (recorder != null || projection != null || virtualDisplay != null) stopRecording()
         super.onDestroy()
     }
 
