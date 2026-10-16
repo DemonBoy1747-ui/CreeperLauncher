@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.ui.activities
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.media.projection.MediaProjectionManager
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.SurfaceTexture
@@ -38,10 +39,17 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.Keep
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.absoluteOffset
@@ -49,6 +57,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,6 +71,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.Lifecycle
@@ -104,6 +117,7 @@ import com.movtery.zalithlauncher.ui.control.input.TextInputMode
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderLayer
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
+import com.movtery.zalithlauncher.recorder.RecorderService
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.utils.computeGameDisplayLayout
 import com.movtery.zalithlauncher.utils.computeGameRenderSize
@@ -352,6 +366,62 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     private var applySizeToSurface: ((width: Int, height: Int) -> Unit)? = null
 
+    private var recorderPanelVisible by mutableStateOf(false)
+    private var recorderIsActive by mutableStateOf(false)
+    private var recorderIsPaused by mutableStateOf(false)
+
+    private val screenCaptureLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data
+        if (result.resultCode == RESULT_OK && data != null) {
+            val serviceIntent = Intent(this, RecorderService::class.java).apply {
+                action = RecorderService.ACTION_START
+                putExtra(RecorderService.EXTRA_RESULT_CODE, result.resultCode)
+                putExtra(RecorderService.EXTRA_RESULT_DATA, data)
+                putExtra(RecorderService.EXTRA_WIDTH, 1280)
+                putExtra(RecorderService.EXTRA_HEIGHT, 720)
+                putExtra(RecorderService.EXTRA_FPS, 30)
+            }
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent)
+                else startService(serviceIntent)
+                recorderIsActive = true
+                recorderIsPaused = false
+                Toast.makeText(this, "Perekaman dimulai (video saja)", Toast.LENGTH_SHORT).show()
+            } catch (error: Exception) {
+                recorderIsActive = false
+                Toast.makeText(this, "Gagal memulai perekaman: ${error.message}", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(this, "Izin perekaman layar dibatalkan", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun requestScreenRecording() {
+        val manager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        screenCaptureLauncher.launch(manager.createScreenCaptureIntent())
+    }
+
+    private fun sendRecorderCommand(action: String) {
+        val serviceIntent = Intent(this, RecorderService::class.java).setAction(action)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent)
+            else startService(serviceIntent)
+        } catch (error: Exception) {
+            Toast.makeText(this, "Kontrol recorder gagal: ${error.message}", Toast.LENGTH_LONG).show()
+        }
+        when (action) {
+            RecorderService.ACTION_PAUSE -> recorderIsPaused = true
+            RecorderService.ACTION_RESUME -> recorderIsPaused = false
+            RecorderService.ACTION_STOP -> {
+                recorderIsActive = false
+                recorderIsPaused = false
+                Toast.makeText(this, "Perekaman dihentikan", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     private inline fun <T> withHandler(block: AbstractHandler.() -> T): T {
         return vmViewModel.session.handler.block()
     }
@@ -513,6 +583,48 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                         },
                         lifecycleScope = lifecycleScope
                     )
+
+                    // Minimal in-game recorder controls; audio and advanced settings
+                    // are intentionally deferred until the video path is device-tested.
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        FloatingActionButton(
+                            onClick = { recorderPanelVisible = !recorderPanelVisible },
+                            modifier = Modifier.align(Alignment.CenterEnd).padding(12.dp)
+                        ) {
+                            Text("REC")
+                        }
+
+                        if (recorderPanelVisible) {
+                            Column(
+                                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 76.dp)
+                            ) {
+                                Text(
+                                    text = when {
+                                        !recorderIsActive -> "Recorder siap"
+                                        recorderIsPaused -> "Perekaman dijeda"
+                                        else -> "Sedang merekam"
+                                    },
+                                    color = Color.White,
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                                Row {
+                                    Button(
+                                        onClick = { requestScreenRecording() },
+                                        enabled = !recorderIsActive
+                                    ) { Text("Mulai") }
+                                    Spacer(Modifier.width(6.dp))
+                                    Button(
+                                        onClick = { sendRecorderCommand(if (recorderIsPaused) RecorderService.ACTION_RESUME else RecorderService.ACTION_PAUSE) },
+                                        enabled = recorderIsActive
+                                    ) { Text(if (recorderIsPaused) "Lanjut" else "Jeda") }
+                                }
+                                Button(
+                                    onClick = { sendRecorderCommand(RecorderService.ACTION_STOP) },
+                                    enabled = recorderIsActive
+                                ) { Text("Stop") }
+                            }
+                        }
+                    }
                 }
             }
         }
