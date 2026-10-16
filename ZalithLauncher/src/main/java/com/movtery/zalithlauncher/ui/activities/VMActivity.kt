@@ -21,7 +21,6 @@ package com.movtery.zalithlauncher.ui.activities
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
-import android.media.projection.MediaProjectionManager
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.SurfaceTexture
@@ -39,7 +38,6 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.Keep
@@ -117,7 +115,8 @@ import com.movtery.zalithlauncher.ui.control.input.TextInputMode
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderLayer
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
-import com.movtery.zalithlauncher.recorder.RecorderService
+import com.movtery.zalithlauncher.recorder.GameRecorder
+import com.movtery.zalithlauncher.recorder.GameSurfaceRegistry
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.utils.computeGameDisplayLayout
 import com.movtery.zalithlauncher.utils.computeGameRenderSize
@@ -370,57 +369,31 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     private var recorderIsActive by mutableStateOf(false)
     private var recorderIsPaused by mutableStateOf(false)
 
-    private val screenCaptureLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        val data = result.data
-        if (result.resultCode == RESULT_OK && data != null) {
-            val serviceIntent = Intent(this, RecorderService::class.java).apply {
-                action = RecorderService.ACTION_START
-                putExtra(RecorderService.EXTRA_RESULT_CODE, result.resultCode)
-                putExtra(RecorderService.EXTRA_RESULT_DATA, data)
-                putExtra(RecorderService.EXTRA_WIDTH, 1280)
-                putExtra(RecorderService.EXTRA_HEIGHT, 720)
-                putExtra(RecorderService.EXTRA_FPS, 30)
-            }
-            try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent)
-                else startService(serviceIntent)
-                recorderIsActive = true
-                recorderIsPaused = false
-                Toast.makeText(this, "Perekaman dimulai (video saja)", Toast.LENGTH_SHORT).show()
-            } catch (error: Exception) {
-                recorderIsActive = false
-                Toast.makeText(this, "Gagal memulai perekaman: ${error.message}", Toast.LENGTH_LONG).show()
-            }
-        } else {
-            Toast.makeText(this, "Izin perekaman layar dibatalkan", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun requestScreenRecording() {
-        val manager = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        screenCaptureLauncher.launch(manager.createScreenCaptureIntent())
+        if (GameRecorder.start(this)) {
+            recorderIsActive = true
+            recorderIsPaused = false
+            Toast.makeText(this, "Perekaman game dimulai", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Gagal memulai rekaman. Periksa log GameRecorder.", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun sendRecorderCommand(action: String) {
-        val serviceIntent = Intent(this, RecorderService::class.java).setAction(action)
-        try {
-            // The recorder service is already foreground while recording. Control
-            // commands must use startService(): startForegroundService() requires
-            // every newly started service instance to call startForeground(), but
-            // PAUSE/RESUME/STOP do not initialize a new foreground session.
-            startService(serviceIntent)
-        } catch (error: Exception) {
-            Toast.makeText(this, "Kontrol recorder gagal: ${error.message}", Toast.LENGTH_LONG).show()
-        }
         when (action) {
-            RecorderService.ACTION_PAUSE -> recorderIsPaused = true
-            RecorderService.ACTION_RESUME -> recorderIsPaused = false
-            RecorderService.ACTION_STOP -> {
+            GameRecorder.ACTION_PAUSE -> {
+                GameRecorder.pause()
+                recorderIsPaused = true
+            }
+            GameRecorder.ACTION_RESUME -> {
+                GameRecorder.resume()
+                recorderIsPaused = false
+            }
+            GameRecorder.ACTION_STOP -> {
+                GameRecorder.stop(this)
                 recorderIsActive = false
                 recorderIsPaused = false
-                Toast.makeText(this, "Perekaman dihentikan", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Perekaman dihentikan; video sedang disimpan", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -617,12 +590,12 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                                     ) { Text("Mulai") }
                                     Spacer(Modifier.width(6.dp))
                                     Button(
-                                        onClick = { sendRecorderCommand(if (recorderIsPaused) RecorderService.ACTION_RESUME else RecorderService.ACTION_PAUSE) },
+                                        onClick = { sendRecorderCommand(if (recorderIsPaused) GameRecorder.ACTION_RESUME else GameRecorder.ACTION_PAUSE) },
                                         enabled = recorderIsActive
                                     ) { Text(if (recorderIsPaused) "Lanjut" else "Jeda") }
                                 }
                                 Button(
-                                    onClick = { sendRecorderCommand(RecorderService.ACTION_STOP) },
+                                    onClick = { sendRecorderCommand(GameRecorder.ACTION_STOP) },
                                     enabled = recorderIsActive
                                 ) { Text("Stop") }
                             }
@@ -746,6 +719,8 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     }
 
     override fun onDestroy() {
+        GameSurfaceRegistry.unregister()
+        GameRecorder.stop(this)
         stopAllService()
         withHandler { onDestroy() }
         SdlBridge.reset()
@@ -980,6 +955,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                             // SDL 模式需要父 ViewGroup（输入法 EditText 附加用）
                             gameSurfaceView = this
                         }.also { surface ->
+                            GameSurfaceRegistry.register(surface)
                             applySizeToSurface = { width, height ->
                                 surface.holder.setFixedSize(width, height)
                             }
@@ -991,6 +967,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
                             surfaceTextureListener = this@VMActivity
                         }.also { texture ->
+                            GameSurfaceRegistry.register(texture)
                             gameSurfaceView = texture
                             applySizeToSurface = { width, height ->
                                 texture.surfaceTexture?.setDefaultBufferSize(width, height)
