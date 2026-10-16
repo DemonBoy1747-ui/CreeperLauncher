@@ -764,6 +764,17 @@
     <string name="microphone_check_title">Periksa Input Mikrofon</string>
     <string name="microphone_check_no_permissions">Izin Mikrofon Tidak Diberikan ke Launcher</string>
     <string name="game_menu_option_replacement_control">Ganti Layout Kontrol</string>
+    <string name="game_menu_recorder_status_idle">Perekam siap</string>
+    <string name="game_menu_recorder_status_recording">Sedang merekam</string>
+    <string name="game_menu_recorder_status_paused">Perekaman dijeda</string>
+    <string name="game_menu_recorder_start">Mulai Merekam</string>
+    <string name="game_menu_recorder_pause">Jeda</string>
+    <string name="game_menu_recorder_resume">Lanjutkan</string>
+    <string name="game_menu_recorder_stop">Hentikan dan Simpan</string>
+    <string name="game_menu_recorder_started">Perekaman game dimulai</string>
+    <string name="game_menu_recorder_stopped">Perekaman dihentikan, video sedang disimpan…</string>
+    <string name="game_menu_recorder_start_failed">Gagal memulai perekaman. Layar game mungkin belum siap.</string>
+    <string name="game_menu_recorder_hint">Video disimpan di Movies/ZalithRecorder. Audio belum direkam.</string>
     <string name="account_change_skin_failed_to_import">Gagal menyimpan file target dalam cache</string>
     <string name="account_change_skin_invalid">Ukuran piksel skin tidak valid, seharusnya 64x32 piksel atau 64x64 piksel</string>
     <string name="account_change_skin_uploading">Mengunggah file skin</string>

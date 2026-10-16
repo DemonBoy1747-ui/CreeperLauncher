@@ -42,12 +42,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.annotation.Keep
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.absoluteOffset
@@ -55,10 +49,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,7 +59,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.Lifecycle
@@ -115,7 +104,7 @@ import com.movtery.zalithlauncher.ui.control.input.TextInputMode
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderLayer
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
-import com.movtery.zalithlauncher.recorder.GameRecorder
+import com.movtery.zalithlauncher.recorder.RecorderController
 import com.movtery.zalithlauncher.recorder.GameSurfaceRegistry
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.utils.computeGameDisplayLayout
@@ -365,39 +354,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     private var applySizeToSurface: ((width: Int, height: Int) -> Unit)? = null
 
-    private var recorderPanelVisible by mutableStateOf(false)
-    private var recorderIsActive by mutableStateOf(false)
-    private var recorderIsPaused by mutableStateOf(false)
-
-    private fun requestScreenRecording() {
-        if (GameRecorder.start(this)) {
-            recorderIsActive = true
-            recorderIsPaused = false
-            Toast.makeText(this, "Perekaman game dimulai", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "Gagal memulai rekaman. Periksa log GameRecorder.", Toast.LENGTH_LONG).show()
-        }
-    }
-
-    private fun sendRecorderCommand(action: String) {
-        when (action) {
-            GameRecorder.ACTION_PAUSE -> {
-                GameRecorder.pause()
-                recorderIsPaused = true
-            }
-            GameRecorder.ACTION_RESUME -> {
-                GameRecorder.resume()
-                recorderIsPaused = false
-            }
-            GameRecorder.ACTION_STOP -> {
-                GameRecorder.stop(this)
-                recorderIsActive = false
-                recorderIsPaused = false
-                Toast.makeText(this, "Perekaman dihentikan; video sedang disimpan", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
     private inline fun <T> withHandler(block: AbstractHandler.() -> T): T {
         return vmViewModel.session.handler.block()
     }
@@ -559,48 +515,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                         },
                         lifecycleScope = lifecycleScope
                     )
-
-                    // Minimal in-game recorder controls; audio and advanced settings
-                    // are intentionally deferred until the video path is device-tested.
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        FloatingActionButton(
-                            onClick = { recorderPanelVisible = !recorderPanelVisible },
-                            modifier = Modifier.align(Alignment.CenterEnd).padding(12.dp)
-                        ) {
-                            Text("REC")
-                        }
-
-                        if (recorderPanelVisible) {
-                            Column(
-                                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 76.dp)
-                            ) {
-                                Text(
-                                    text = when {
-                                        !recorderIsActive -> "Recorder siap"
-                                        recorderIsPaused -> "Perekaman dijeda"
-                                        else -> "Sedang merekam"
-                                    },
-                                    color = Color.White,
-                                    modifier = Modifier.padding(8.dp)
-                                )
-                                Row {
-                                    Button(
-                                        onClick = { requestScreenRecording() },
-                                        enabled = !recorderIsActive
-                                    ) { Text("Mulai") }
-                                    Spacer(Modifier.width(6.dp))
-                                    Button(
-                                        onClick = { sendRecorderCommand(if (recorderIsPaused) GameRecorder.ACTION_RESUME else GameRecorder.ACTION_PAUSE) },
-                                        enabled = recorderIsActive
-                                    ) { Text(if (recorderIsPaused) "Lanjut" else "Jeda") }
-                                }
-                                Button(
-                                    onClick = { sendRecorderCommand(GameRecorder.ACTION_STOP) },
-                                    enabled = recorderIsActive
-                                ) { Text("Stop") }
-                            }
-                        }
-                    }
+                    //Kontrol recorder ada di menu game (tab Recorder), bukan lagi tombol mengambang
                 }
             }
         }
@@ -720,7 +635,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     override fun onDestroy() {
         GameSurfaceRegistry.unregister()
-        GameRecorder.stop(this)
+        RecorderController.stop(this)
         stopAllService()
         withHandler { onDestroy() }
         SdlBridge.reset()
