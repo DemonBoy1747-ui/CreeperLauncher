@@ -406,8 +406,11 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     private fun sendRecorderCommand(action: String) {
         val serviceIntent = Intent(this, RecorderService::class.java).setAction(action)
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(serviceIntent)
-            else startService(serviceIntent)
+            // The recorder service is already foreground while recording. Control
+            // commands must use startService(): startForegroundService() requires
+            // every newly started service instance to call startForeground(), but
+            // PAUSE/RESUME/STOP do not initialize a new foreground session.
+            startService(serviceIntent)
         } catch (error: Exception) {
             Toast.makeText(this, "Kontrol recorder gagal: ${error.message}", Toast.LENGTH_LONG).show()
         }
