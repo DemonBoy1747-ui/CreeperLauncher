@@ -77,6 +77,8 @@ import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -472,6 +474,24 @@ private fun ResultLayout(
 }
 
 @Composable
+private fun SearchIdGlass(content: @Composable () -> Unit) {
+    val backdrop = liquidGlassBackdrop()
+    if (backdrop != null) {
+        LiquidGlassSurface(
+            backdrop = backdrop,
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = MaterialTheme.colorScheme.surface,
+            blurRadius = 10.dp
+        ) {
+            content()
+        }
+    } else {
+        content()
+    }
+}
+
+@Composable
 private fun ContentFilter(
     isVisible: Boolean,
     onSearch: () -> Unit,
@@ -492,9 +512,10 @@ private fun ContentFilter(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        OwnOutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = projectId,
+        SearchIdGlass {
+            OwnOutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = projectId,
             onValueChange = onProjectIdChange,
             singleLine = true,
             label = {
@@ -518,13 +539,16 @@ private fun ContentFilter(
                     onSearch()
                 }
             ),
-            shape = MaterialTheme.shapes.large
-        )
+                shape = MaterialTheme.shapes.large
+            )
+        }
 
-        PlatformListLayout(
-            modifier = Modifier.fillMaxWidth(),
-            searchPlatform = searchPlatform,
-            onPlatformChange = onPlatformChange,
-        )
+        SearchIdGlass {
+            PlatformListLayout(
+                modifier = Modifier.fillMaxWidth(),
+                searchPlatform = searchPlatform,
+                onPlatformChange = onPlatformChange,
+            )
+        }
     }
 }
