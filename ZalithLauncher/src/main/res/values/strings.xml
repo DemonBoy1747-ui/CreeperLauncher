@@ -1077,6 +1077,8 @@
     <string name="settings_launcher_language">Language</string>
     <string name="settings_launcher_full_screen_title">Fullscreen Mode</string>
     <string name="settings_launcher_full_screen_summary">Make the launcher pages fullscreen, ignoring safe areas like notches and punch-holes</string>
+    <string name="settings_launcher_liquid_glass_title">Liquid Glass</string>
+    <string name="settings_launcher_liquid_glass_summary">Enable or disable the Liquid Glass effect on the top bar and home cards. Works with an image background; full refraction needs Android 13+</string>
     <string name="settings_launcher_animate_speed_title">Animation Speed</string>
     <string name="settings_launcher_animate_speed_summary">Adjust the playback speed multiplier for launcher animations</string>
     <string name="settings_launcher_animate_extent_title">Animation Intensity</string>

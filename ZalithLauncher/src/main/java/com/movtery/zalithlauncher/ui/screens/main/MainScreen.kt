@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -84,6 +85,7 @@ import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
+import com.movtery.zalithlauncher.ui.components.LiquidGlassBar
 import com.movtery.zalithlauncher.ui.components.TextRailItem
 import com.movtery.zalithlauncher.ui.screens.BackStackNavKey
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -172,39 +174,44 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            TopBar(
+            LiquidGlassBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp),
-                mainScreenKey = mainScreenKey,
-                inLauncherScreen = inLauncherScreen,
-                taskRunning = tasks.isEmpty(),
-                isTasksExpanded = isTaskMenuExpanded,
-                contentColor = onBackgroundColor(),
-                onScreenBack = {
-                    screenBackStackModel.mainScreen.backStack.removeFirstOrNull()
-                },
-                toMainScreen = toMainScreen,
-                toSettingsScreen = {
-                    screenBackStackModel.mainScreen.removeAndNavigateTo(
-                        removes = screenBackStackModel.clearBeforeNavKeys,
-                        screenKey = screenBackStackModel.settingsScreen
-                    )
-                },
-                toDownloadScreen = {
-                    screenBackStackModel.navigateToDownload()
-                },
-                openFileManager = {
-                    eventViewModel.sendEvent(
-                        EventViewModel.Event.OpenFileManager(
-                            rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath
+                shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
+            ) {
+                TopBar(
+                    modifier = Modifier.fillMaxSize(),
+                    mainScreenKey = mainScreenKey,
+                    inLauncherScreen = inLauncherScreen,
+                    taskRunning = tasks.isEmpty(),
+                    isTasksExpanded = isTaskMenuExpanded,
+                    contentColor = onBackgroundColor(),
+                    onScreenBack = {
+                        screenBackStackModel.mainScreen.backStack.removeFirstOrNull()
+                    },
+                    toMainScreen = toMainScreen,
+                    toSettingsScreen = {
+                        screenBackStackModel.mainScreen.removeAndNavigateTo(
+                            removes = screenBackStackModel.clearBeforeNavKeys,
+                            screenKey = screenBackStackModel.settingsScreen
                         )
-                    )
-                },
-                changeExpandedState = {
-                    changeTasksExpandedState()
-                },
-            )
+                    },
+                    toDownloadScreen = {
+                        screenBackStackModel.navigateToDownload()
+                    },
+                    openFileManager = {
+                        eventViewModel.sendEvent(
+                            EventViewModel.Event.OpenFileManager(
+                                rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath
+                            )
+                        )
+                    },
+                    changeExpandedState = {
+                        changeTasksExpandedState()
+                    },
+                )
+            }
 
             Box(
                 modifier = Modifier

@@ -42,8 +42,10 @@ import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.ui.theme.components.activeMaskView
 import com.movtery.zalithlauncher.utils.festival.Festival
 import com.movtery.zalithlauncher.utils.festival.LocalFestivals
+import com.movtery.zalithlauncher.ui.components.LocalLiquidGlassBackdrop
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
+import com.styropyr0.prismal.sources.rememberPrismalGlassLayer
 
 private val embermireLight = lightColorScheme(
     primary = primaryLight.embermire,
@@ -673,9 +675,17 @@ fun ZalithLauncherTheme(
         }
     }
 
+    //Liquid Glass：仅在设置开启且背景为图片时提供可采样的背景图层
+    val glassLayer = rememberPrismalGlassLayer()
+    val activeGlassLayer = glassLayer.takeIf {
+        AllSettings.launcherLiquidGlass.state &&
+                backgroundViewModel?.let { vm -> vm.isValid && vm.isImage } == true
+    }
+
     CompositionLocalProvider(
         LocalBackgroundViewModel provides backgroundViewModel,
-        LocalFestivals provides festivals
+        LocalFestivals provides festivals,
+        LocalLiquidGlassBackdrop provides activeGlassLayer
     ) {
         MaterialExpressiveTheme(
             colorScheme = currentDisplayScheme,

@@ -492,7 +492,8 @@ private fun ActionMenuCardContent(
         modifier = Modifier
             .actionMenuDragAnchor()
             .then(modifier),
-        shape = MaterialTheme.shapes.extraLarge
+        shape = MaterialTheme.shapes.extraLarge,
+        liquidGlass = true
     ) {
         ConstraintLayout(
             modifier = Modifier.fillMaxSize()
@@ -567,6 +568,7 @@ private fun ActionMenuTallerContent(
             modifier = Modifier
                 .fillMaxWidth(),
             shape = MaterialTheme.shapes.extraLarge,
+            liquidGlass = true,
             onClick = toAccountManageScreen
         ) {
             AccountAvatarRow(
@@ -578,6 +580,7 @@ private fun ActionMenuTallerContent(
         BackgroundCard(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.extraLarge,
+            liquidGlass = true
         ) {
             VersionsContent(
                 modifier = Modifier.fillMaxWidth(),

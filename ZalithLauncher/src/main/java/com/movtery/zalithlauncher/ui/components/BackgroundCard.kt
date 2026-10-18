@@ -55,8 +55,23 @@ fun BackgroundCard(
     elevation: CardElevation = CardDefaults.cardElevation(),
     blur: Int = AllSettings.backgroundBlur.state,
     border: BorderStroke? = null,
+    liquidGlass: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val glassBackdrop = if (liquidGlass) liquidGlassBackdrop() else null
+    if (glassBackdrop != null) {
+        LiquidGlassSurface(
+            backdrop = glassBackdrop,
+            shape = shape,
+            modifier = modifier,
+            containerColor = colors.containerColor,
+            contentColor = colors.contentColor
+        ) {
+            Column(content = content)
+        }
+        return
+    }
+
     Card(
         modifier = modifier,
         shape = shape,
@@ -88,10 +103,26 @@ fun BackgroundCard(
     elevation: CardElevation = CardDefaults.cardElevation(),
     blur: Int = AllSettings.backgroundBlur.state,
     border: BorderStroke? = null,
+    liquidGlass: Boolean = false,
     onClick: () -> Unit,
     enabled: Boolean = true,
     content: @Composable @UiComposable ColumnScope.() -> Unit
 ) {
+    val glassBackdrop = if (liquidGlass) liquidGlassBackdrop() else null
+    if (glassBackdrop != null) {
+        LiquidGlassSurface(
+            backdrop = glassBackdrop,
+            shape = shape,
+            modifier = modifier,
+            containerColor = colors.containerColor,
+            contentColor = colors.contentColor,
+            onClick = if (enabled) onClick else null
+        ) {
+            Column(content = content)
+        }
+        return
+    }
+
     Card(
         modifier = modifier,
         shape = shape,

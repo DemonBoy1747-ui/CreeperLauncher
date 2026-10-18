@@ -86,12 +86,14 @@ import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.ButtonPosition
+import com.movtery.zalithlauncher.ui.components.LocalLiquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.PositionButton
 import com.movtery.zalithlauncher.ui.components.PositionFilledTonalButton
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.VideoPlayer
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
+import com.styropyr0.prismal.sources.prismalGlassLayer
 import com.movtery.zalithlauncher.ui.screens.content.FirstLoginMenu
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -552,6 +554,7 @@ fun Background(
     val backgroundBlurEnabled = backgroundMode && blur > 0 && opacity < 100
     val layerCapture = !backgroundMode && blur > 0 && opacity < 100 && viewModel.isValid
     val density = LocalDensity.current
+    val glassBackdrop = LocalLiquidGlassBackdrop.current
 
     Box(
         modifier = modifier
@@ -567,6 +570,10 @@ fun Background(
                 recordContent = layerCapture,
                 blurRadiusPx = blur * density.density,
                 whiteOverlayAlpha = if (backgroundBlurEnabled) whiteOverlayAlpha(blur) else 0f
+            )
+            .then(
+                //Liquid Glass：把背景内容录制进共享图层，供玻璃组件采样
+                if (glassBackdrop != null) Modifier.prismalGlassLayer(glassBackdrop) else Modifier
             )
     ) {
         if (viewModel.isValid) {
