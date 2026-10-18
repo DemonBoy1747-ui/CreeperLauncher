@@ -54,6 +54,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.download.assets.favorites.FavoriteEntry
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformFilterCode
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsIcon
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.FavoriteToggleLabel
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.ProjectTitleHead
