@@ -208,12 +208,12 @@ private fun TabMenu(
             }
 
             val glassBackdrop = liquidGlassBackdrop()
+            val categorySelected = backScreenViewModel.downloadScreen.currentKey == item.key
+            val selectCategory = { backStack.navigateOnce(item.key) }
             val categoryContent: @Composable () -> Unit = {
                 NavigationRailItem(
-                    selected = backScreenViewModel.downloadScreen.currentKey == item.key,
-                    onClick = {
-                        backStack.navigateOnce(item.key)
-                    },
+                    selected = categorySelected,
+                    onClick = selectCategory,
                     colors = if (glassBackdrop != null) {
                         NavigationRailItemDefaults.colors(indicatorColor = Color.Transparent)
                     } else {
@@ -236,8 +236,10 @@ private fun TabMenu(
                 LiquidGlassSurface(
                     backdrop = glassBackdrop,
                     shape = MaterialTheme.shapes.large,
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    blurRadius = 8.dp
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = if (categorySelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                    blurRadius = 10.dp,
+                    onClick = selectCategory
                 ) {
                     categoryContent()
                 }

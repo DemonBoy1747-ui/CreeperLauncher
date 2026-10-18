@@ -55,7 +55,7 @@ fun BackgroundCard(
     elevation: CardElevation = CardDefaults.cardElevation(),
     blur: Int = AllSettings.backgroundBlur.state,
     border: BorderStroke? = null,
-    liquidGlass: Boolean = false,
+    liquidGlass: Boolean = AllSettings.launcherLiquidGlass.state,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val glassBackdrop = if (liquidGlass) liquidGlassBackdrop() else null
@@ -103,7 +103,7 @@ fun BackgroundCard(
     elevation: CardElevation = CardDefaults.cardElevation(),
     blur: Int = AllSettings.backgroundBlur.state,
     border: BorderStroke? = null,
-    liquidGlass: Boolean = false,
+    liquidGlass: Boolean = AllSettings.launcherLiquidGlass.state,
     onClick: () -> Unit,
     enabled: Boolean = true,
     content: @Composable @UiComposable ColumnScope.() -> Unit

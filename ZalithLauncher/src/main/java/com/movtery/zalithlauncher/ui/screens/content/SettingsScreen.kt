@@ -50,6 +50,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -154,23 +156,51 @@ private fun TabMenu(
                 )
             }
 
-            NavigationRailItem(
-                selected = settingsScreenKey == item.key,
-                onClick = {
-                    navigateTo(item.key)
-                },
-                icon = {
-                    item.icon()
-                },
-                label = {
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        text = stringResource(item.textRes),
-                        maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+            val glassBackdrop = liquidGlassBackdrop()
+            if (glassBackdrop != null) {
+                LiquidGlassSurface(
+                    backdrop = glassBackdrop,
+                    shape = MaterialTheme.shapes.large,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    blurRadius = 8.dp
+                ) {
+                NavigationRailItem(
+                    selected = settingsScreenKey == item.key,
+                    onClick = {
+                        navigateTo(item.key)
+                    },
+                    icon = {
+                        item.icon()
+                    },
+                    label = {
+                        Text(
+                            modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                            text = stringResource(item.textRes),
+                            maxLines = 1,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                )
                 }
-            )
+            } else {
+                NavigationRailItem(
+                    selected = settingsScreenKey == item.key,
+                    onClick = {
+                        navigateTo(item.key)
+                    },
+                    icon = {
+                        item.icon()
+                    },
+                    label = {
+                        Text(
+                            modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                            text = stringResource(item.textRes),
+                            maxLines = 1,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
         }

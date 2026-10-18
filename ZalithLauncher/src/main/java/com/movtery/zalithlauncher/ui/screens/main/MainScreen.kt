@@ -387,12 +387,31 @@ private fun <E: TitledNavKey> TopBar(
                         parent
                     }
 
-                    AndroidStringText(
-                        text = titleText,
-                        style = style,
-                        softWrap = softWarp,
-                        maxLines = maxLines
-                    )
+                    val glassBackdrop = liquidGlassBackdrop()
+                    if (glassBackdrop != null) {
+                        LiquidGlassSurface(
+                            backdrop = glassBackdrop,
+                            shape = MaterialTheme.shapes.large,
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = contentColor,
+                            blurRadius = 10.dp
+                        ) {
+                            AndroidStringText(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                text = titleText,
+                                style = style,
+                                softWrap = softWarp,
+                                maxLines = maxLines
+                            )
+                        }
+                    } else {
+                        AndroidStringText(
+                            text = titleText,
+                            style = style,
+                            softWrap = softWarp,
+                            maxLines = maxLines
+                        )
+                    }
                 }
             }
 
@@ -435,37 +454,57 @@ private fun <E: TitledNavKey> TopBar(
                     }
                 }
 
-                ToolbarTooltip(label = "File manager") {
-                    IconButton(
-                        onClick = openFileManager
+                val toolbarGlassBackdrop = liquidGlassBackdrop()
+                val toolbarActions: @Composable () -> Unit = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_folder_filled),
-                            contentDescription = "File manager"
-                        )
+                        ToolbarTooltip(label = "File manager") {
+                            IconButton(onClick = openFileManager) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_folder_filled),
+                                    contentDescription = "File manager"
+                                )
+                            }
+                        }
+
+                        ToolbarTooltip(label = stringResource(R.string.generic_download)) {
+                            TopBarRailItem(
+                                selected = inDownloadScreen,
+                                painter = painterResource(R.drawable.ic_download_2_filled),
+                                text = stringResource(R.string.generic_download),
+                                onClick = {
+                                    if (!inDownloadScreen) toDownloadScreen()
+                                },
+                            )
+                        }
+
+                        ToolbarTooltip(label = stringResource(R.string.generic_setting)) {
+                            TopBarRailItem(
+                                selected = inSettingsScreen,
+                                painter = painterResource(R.drawable.ic_settings_filled),
+                                text = stringResource(R.string.generic_setting),
+                                onClick = {
+                                    if (!inSettingsScreen) toSettingsScreen()
+                                },
+                            )
+                        }
                     }
                 }
-
-                ToolbarTooltip(label = stringResource(R.string.generic_download)) {
-                    TopBarRailItem(
-                        selected = inDownloadScreen,
-                        painter = painterResource(R.drawable.ic_download_2_filled),
-                        text = stringResource(R.string.generic_download),
-                        onClick = {
-                            if (!inDownloadScreen) toDownloadScreen()
-                        },
-                    )
-                }
-
-                ToolbarTooltip(label = stringResource(R.string.generic_setting)) {
-                    TopBarRailItem(
-                        selected = inSettingsScreen,
-                        painter = painterResource(R.drawable.ic_settings_filled),
-                        text = stringResource(R.string.generic_setting),
-                        onClick = {
-                            if (!inSettingsScreen) toSettingsScreen()
-                        },
-                    )
+                if (toolbarGlassBackdrop != null) {
+                    LiquidGlassSurface(
+                        backdrop = toolbarGlassBackdrop,
+                        shape = MaterialTheme.shapes.large,
+                        modifier = Modifier.height(40.dp),
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = LocalContentColor.current,
+                        blurRadius = 12.dp
+                    ) {
+                        toolbarActions()
+                    }
+                } else {
+                    toolbarActions()
                 }
             }
         }
@@ -506,28 +545,12 @@ private fun TopBarRailItem(
         onClick = onClick,
         text = {
             AnimatedVisibility(visible = selected) {
-                val glassBackdrop = liquidGlassBackdrop()
-                if (glassBackdrop != null) {
-                    LiquidGlassSurface(
-                        backdrop = glassBackdrop,
-                        shape = MaterialTheme.shapes.large,
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = LocalContentColor.current,
-                        blurRadius = 8.dp
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(text = text, style = textStyle)
-                        }
-                    }
-                } else {
-                    Row {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(text = text, style = textStyle)
-                    }
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(text = text, style = textStyle)
                 }
             }
         },
