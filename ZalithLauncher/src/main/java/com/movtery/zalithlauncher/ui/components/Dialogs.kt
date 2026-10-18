@@ -39,6 +39,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
@@ -66,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import kotlinx.coroutines.Dispatchers
@@ -106,6 +108,11 @@ fun SimpleAlertDialog(
     onDismiss: () -> Unit
 ) {
     AlertDialog(
+        colors = AlertDialogDefaults.colors(
+            containerColor = if (liquidGlassBackdrop() != null) MaterialTheme.colorScheme.surface.copy(alpha = 0.42f) else AlertDialogDefaults.colors().containerColor,
+            titleContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
+            textContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface
+        ),
         onDismissRequest = {
             if (dismissByDialog) onDismiss()
         },
@@ -155,6 +162,11 @@ fun SimpleAlertDialog(
     onDismiss: () -> Unit
 ) {
     AlertDialog(
+        colors = AlertDialogDefaults.colors(
+            containerColor = if (liquidGlassBackdrop() != null) MaterialTheme.colorScheme.surface.copy(alpha = 0.42f) else AlertDialogDefaults.colors().containerColor,
+            titleContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
+            textContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface
+        ),
         onDismissRequest = {
             if (dismissByDialog) onDismiss()
         },
@@ -193,6 +205,11 @@ fun SimpleAlertDialog(
     onDismissRequest: () -> Unit = {}
 ) {
     AlertDialog(
+        colors = AlertDialogDefaults.colors(
+            containerColor = if (liquidGlassBackdrop() != null) MaterialTheme.colorScheme.surface.copy(alpha = 0.42f) else AlertDialogDefaults.colors().containerColor,
+            titleContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
+            textContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface
+        ),
         onDismissRequest = onDismissRequest,
         title = {
             Text(

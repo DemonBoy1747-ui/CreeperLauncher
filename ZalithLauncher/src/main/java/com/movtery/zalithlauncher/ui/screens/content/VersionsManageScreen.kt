@@ -86,6 +86,7 @@ import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleane
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.activities.MainActivity
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -592,20 +593,15 @@ private fun VersionsLayout(
                             .padding(all = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        val blur = AllSettings.backgroundBlur.state
                         val cardColor = cardColor()
 
-                        Surface(
+                        BackgroundCard(
                             modifier = Modifier.height(IntrinsicSize.Max),
-                            color = cardColor,
-                            contentColor = onCardColor(),
                             shape = MaterialTheme.shapes.large,
-                            shadowElevation = actionBarShadowElevation,
+                            liquidGlass = true
                         ) {
                             Row(
-                                modifier = Modifier
-                                    .backgroundGlass(blur, cardColor)
-                                    .padding(all = 8.dp),
+                                modifier = Modifier.padding(all = 8.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -625,19 +621,16 @@ private fun VersionsLayout(
                         }
 
                         // 版本分类
-                        Surface(
+                        BackgroundCard(
                             modifier = Modifier
                                 .weight(1f, fill = false)
                                 .height(IntrinsicSize.Max),
-                            color = cardColor,
-                            contentColor = onCardColor(),
                             shape = MaterialTheme.shapes.large,
-                            shadowElevation = actionBarShadowElevation,
+                            liquidGlass = true
                         ) {
                             val scrollState = rememberScrollState()
                             Row(
                                 modifier = Modifier
-                                    .backgroundGlass(blur, cardColor)
                                     .fadeEdge(
                                         state = scrollState,
                                         length = 32.dp,

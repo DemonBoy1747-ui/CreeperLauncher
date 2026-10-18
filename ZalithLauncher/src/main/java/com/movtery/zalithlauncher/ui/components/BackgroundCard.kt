@@ -65,7 +65,7 @@ fun BackgroundCard(
             shape = shape,
             modifier = modifier,
             containerColor = colors.containerColor,
-            contentColor = colors.contentColor
+            contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else colors.contentColor
         ) {
             Column(content = content)
         }
@@ -115,7 +115,7 @@ fun BackgroundCard(
             shape = shape,
             modifier = modifier,
             containerColor = colors.containerColor,
-            contentColor = colors.contentColor,
+            contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else colors.contentColor,
             onClick = if (enabled) onClick else null
         ) {
             Column(content = content)

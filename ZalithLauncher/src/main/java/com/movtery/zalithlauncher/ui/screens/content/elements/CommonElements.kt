@@ -85,6 +85,7 @@ import com.movtery.zalithlauncher.coroutine.TaskStage
 import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.TaskLogCard
@@ -452,14 +453,18 @@ private fun TaskFlowListColumn(
             state = scrollState
         ) {
             items(tasks) { task ->
-                InstallingTaskItem(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp),
-                    title = task.title,
-                    runningIcon = task.runningIcon,
-                    task = task.task
-                )
+                BackgroundCard(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                    shape = MaterialTheme.shapes.large,
+                    liquidGlass = true
+                ) {
+                    InstallingTaskItem(
+                        modifier = Modifier.fillMaxWidth().padding(all = 8.dp),
+                        title = task.title,
+                        runningIcon = task.runningIcon,
+                        task = task.task
+                    )
+                }
             }
         }
     }

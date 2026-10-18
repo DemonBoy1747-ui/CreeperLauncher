@@ -476,30 +476,38 @@ private fun VersionsContent(
                 backdrop = glassBackdrop,
                 shape = ButtonDefaults.shape,
                 modifier = launchButtonModifier,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
+                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
+                contentColor = Color.White,
                 blurRadius = 10.dp
             ) {
                 ScalingActionButton(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color.Transparent,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
+                        contentColor = Color.White
                     ),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                     onClick = { onLaunchGame(null) },
                     content = {
-                        MarqueeText(text = stringResource(R.string.main_launch_game))
+                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                            MarqueeText(text = stringResource(R.string.main_launch_game))
+                        }
                     }
                 )
             }
         } else {
             ScalingActionButton(
                 modifier = launchButtonModifier,
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
                 onClick = { onLaunchGame(null) },
                 content = {
-                    MarqueeText(text = stringResource(R.string.main_launch_game))
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        MarqueeText(text = stringResource(R.string.main_launch_game))
+                    }
                 }
             )
         }

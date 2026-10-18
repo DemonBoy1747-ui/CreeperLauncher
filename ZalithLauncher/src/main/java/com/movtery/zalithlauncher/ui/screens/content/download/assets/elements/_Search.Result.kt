@@ -91,6 +91,7 @@ import com.movtery.zalithlauncher.game.version.mod.InstalledMod
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SmallOutlinedEditField
@@ -302,13 +303,11 @@ private fun PageController(
     Surface(
         modifier = modifier,
         shape = shape,
-        color = color,
+        color = Color.Transparent,
         contentColor = contentColor
     ) {
         Row(
-            modifier = Modifier
-                .backgroundGlass(blur, color, influencedByBackground)
-                .padding(all = 4.dp),
+            modifier = Modifier.padding(all = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
@@ -369,11 +368,16 @@ private fun ResultList(
     installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null
 ) {
     val context = LocalContext.current
-    LazyColumn(
+    BackgroundCard(
         modifier = modifier,
-        state = state,
-        contentPadding = contentPadding
+        shape = MaterialTheme.shapes.extraLarge,
+        liquidGlass = true
     ) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = state,
+            contentPadding = contentPadding
+        ) {
         items(data) { (item, mcmod) ->
             val platform = remember(item) { item.platform() }
             val title = remember(item) { item.platformTitle() }
@@ -407,6 +411,7 @@ private fun ResultList(
                     swapToDownload(platform, item.platformId(), iconUrl)
                 }
             )
+        }
         }
     }
 }

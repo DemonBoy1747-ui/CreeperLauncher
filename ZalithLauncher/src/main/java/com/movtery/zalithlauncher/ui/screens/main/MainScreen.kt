@@ -271,10 +271,27 @@ private fun <E: TitledNavKey> TopBar(
     val inSettingsScreen = mainScreenKey is NestedNavKey.Settings
 
     CompositionLocalProvider(
-        LocalContentColor provides contentColor
+        LocalContentColor provides if (AllSettings.launcherLiquidGlass.state) Color.White else contentColor
     ) {
         ConstraintLayout(modifier = modifier) {
-            val (backCenter, title, endButtons) = createRefs()
+            val (backCenter, title, endButtons, leftGlass) = createRefs()
+
+            val leftGlassBackdrop = liquidGlassBackdrop()
+            if (leftGlassBackdrop != null) {
+                LiquidGlassSurface(
+                    backdrop = leftGlassBackdrop,
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier.constrainAs(leftGlass) {
+                        start.linkTo(parent.start)
+                        end.linkTo(title.end)
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                    },
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = Color.White,
+                    blurRadius = 10.dp
+                ) {}
+            }
 
             val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
@@ -348,70 +365,25 @@ private fun <E: TitledNavKey> TopBar(
 
                 if (parent == null) {
                     if (festivals.isEmpty()) {
-                        val glassBackdrop = liquidGlassBackdrop()
-                        if (glassBackdrop != null) {
-                            LiquidGlassSurface(
-                                backdrop = glassBackdrop,
-                                shape = MaterialTheme.shapes.large,
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = contentColor,
-                                blurRadius = 10.dp
-                            ) {
-                                Text(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                    text = BuildKeys.LAUNCHER_IDENTIFIER,
-                                    style = style,
-                                    softWrap = softWarp,
-                                    maxLines = maxLines
-                                )
-                            }
-                        } else {
-                            Text(
-                                text = BuildKeys.LAUNCHER_IDENTIFIER,
-                                style = style,
-                                softWrap = softWarp,
-                                maxLines = maxLines
-                            )
-                        }
-                    } else {
-                        FestivalTitleText(
-                            festivals = festivals,
-                            style = style,
-                            maxLines = maxLines
-                        )
-                    }
-                } else {
-                    val titleText = if (child != null) {
-                        androidText(parent, androidText(" - "), child)
-                    } else {
-                        parent
-                    }
-
-                    val glassBackdrop = liquidGlassBackdrop()
-                    if (glassBackdrop != null) {
-                        LiquidGlassSurface(
-                            backdrop = glassBackdrop,
-                            shape = MaterialTheme.shapes.large,
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            contentColor = contentColor,
-                            blurRadius = 10.dp
-                        ) {
-                            AndroidStringText(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                                text = titleText,
-                                style = style,
-                                softWrap = softWarp,
-                                maxLines = maxLines
-                            )
-                        }
-                    } else {
-                        AndroidStringText(
-                            text = titleText,
+                        Text(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            text = BuildKeys.LAUNCHER_IDENTIFIER,
                             style = style,
                             softWrap = softWarp,
                             maxLines = maxLines
                         )
+                    } else {
+                        FestivalTitleText(festivals = festivals, style = style, maxLines = maxLines)
                     }
+                } else {
+                    val titleText = if (child != null) androidText(parent, androidText(" - "), child) else parent
+                    AndroidStringText(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        text = titleText,
+                        style = style,
+                        softWrap = softWarp,
+                        maxLines = maxLines
+                    )
                 }
             }
 
