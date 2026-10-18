@@ -20,24 +20,15 @@ package com.movtery.zalithlauncher.ui.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.isSpecified
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.AllSettings
@@ -79,37 +70,9 @@ fun LiquidGlassSurface(
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
-    var isPressed by remember { mutableStateOf(false) }
-    val pressScale by animateFloatAsState(
-        targetValue = if (onClick != null && isPressed) 0.95f else 1f,
-        label = "LiquidGlassPressScale"
-    )
-    val interactiveModifier = if (onClick != null) {
-        modifier
-            .graphicsLayer {
-                scaleX = pressScale
-                scaleY = pressScale
-            }
-            .pointerInput(onClick != null) {
-                awaitEachGesture {
-                    awaitFirstDown(requireUnconsumed = false)
-                    isPressed = true
-                    try {
-                        var pointerPressed: Boolean
-                        do {
-                            val event = awaitPointerEvent()
-                            pointerPressed = event.changes.any { it.pressed }
-                        } while (pointerPressed)
-                    } finally {
-                        isPressed = false
-                    }
-                }
-            }
-    } else modifier
-
     PrismalGlassSurface(
         backdrop = backdrop,
-        modifier = interactiveModifier,
+        modifier = modifier,
         shape = { shape },
         onClick = onClick,
         blurRadius = blurRadius,
