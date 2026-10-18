@@ -274,25 +274,27 @@ private fun <E: TitledNavKey> TopBar(
         LocalContentColor provides if (AllSettings.launcherLiquidGlass.state) Color.White else contentColor
     ) {
         ConstraintLayout(modifier = modifier) {
-            val (backCenter, title, endButtons, leftGlass) = createRefs()
+            val (backCenter, title, endButtons, headerGlass) = createRefs()
 
-            val leftGlassBackdrop = liquidGlassBackdrop()
-            if (leftGlassBackdrop != null) {
+            val headerGlassBackdrop = liquidGlassBackdrop()
+            // Inner pages share one continuous glass header. The launcher home keeps
+            // its title and action group as separate surfaces.
+            if (headerGlassBackdrop != null && !inLauncherScreen) {
                 LiquidGlassSurface(
-                    backdrop = leftGlassBackdrop,
+                    backdrop = headerGlassBackdrop,
                     shape = MaterialTheme.shapes.large,
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
-                        .constrainAs(leftGlass) {
-                        start.linkTo(parent.start)
-                        end.linkTo(title.end)
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                    },
+                        .constrainAs(headerGlass) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                        },
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = Color.White,
-                    blurRadius = 10.dp
+                    blurRadius = 12.dp
                 ) {}
             }
 
@@ -358,37 +360,56 @@ private fun <E: TitledNavKey> TopBar(
             Crossfade(
                 modifier = Modifier.constrainAs(title) {
                     centerVerticallyTo(parent)
-                    start.linkTo(backCenter.end, margin = 16.dp)
-                    // Keep the title surface at its content width and leave room for toolbar actions.
-                    end.linkTo(endButtons.start, margin = 8.dp)
+                    start.linkTo(backCenter.end, margin = if (inLauncherScreen) 12.dp else 16.dp)
+                    if (!inLauncherScreen) {
+                        end.linkTo(endButtons.start, margin = 8.dp)
+                    }
                 },
                 targetState = parentRes to childRes
             ) { (parent, child) ->
                 val style = MaterialTheme.typography.titleMedium
                 val softWarp = false
                 val maxLines = 1
+                val titleBackdrop = if (inLauncherScreen) liquidGlassBackdrop() else null
 
-                if (parent == null) {
-                    if (festivals.isEmpty()) {
-                        Text(
+                @Composable
+                fun TitleContent() {
+                    if (parent == null) {
+                        if (festivals.isEmpty()) {
+                            Text(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                text = BuildKeys.LAUNCHER_IDENTIFIER,
+                                style = style,
+                                softWrap = softWarp,
+                                maxLines = maxLines
+                            )
+                        } else {
+                            FestivalTitleText(festivals = festivals, style = style, maxLines = maxLines)
+                        }
+                    } else {
+                        val titleText = if (child != null) androidText(parent, androidText(" - "), child) else parent
+                        AndroidStringText(
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            text = BuildKeys.LAUNCHER_IDENTIFIER,
+                            text = titleText,
                             style = style,
                             softWrap = softWarp,
                             maxLines = maxLines
                         )
-                    } else {
-                        FestivalTitleText(festivals = festivals, style = style, maxLines = maxLines)
+                    }
+                }
+
+                if (titleBackdrop != null) {
+                    LiquidGlassSurface(
+                        backdrop = titleBackdrop,
+                        shape = MaterialTheme.shapes.large,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = Color.White,
+                        blurRadius = 10.dp
+                    ) {
+                        TitleContent()
                     }
                 } else {
-                    val titleText = if (child != null) androidText(parent, androidText(" - "), child) else parent
-                    AndroidStringText(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                        text = titleText,
-                        style = style,
-                        softWrap = softWarp,
-                        maxLines = maxLines
-                    )
+                    TitleContent()
                 }
             }
 
@@ -469,7 +490,7 @@ private fun <E: TitledNavKey> TopBar(
                         }
                     }
                 }
-                if (toolbarGlassBackdrop != null) {
+                if (toolbarGlassBackdrop != null && inLauncherScreen) {
                     LiquidGlassSurface(
                         backdrop = toolbarGlassBackdrop,
                         shape = MaterialTheme.shapes.large,
