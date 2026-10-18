@@ -85,7 +85,8 @@ import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
-import com.movtery.zalithlauncher.ui.components.LiquidGlassBar
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.TextRailItem
 import com.movtery.zalithlauncher.ui.screens.BackStackNavKey
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -174,11 +175,10 @@ fun MainScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            LiquidGlassBar(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp),
-                shape = RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp)
+                    .height(40.dp)
             ) {
                 TopBar(
                     modifier = Modifier.fillMaxSize(),
@@ -338,12 +338,31 @@ private fun <E: TitledNavKey> TopBar(
 
                 if (parent == null) {
                     if (festivals.isEmpty()) {
-                        Text(
-                            text = BuildKeys.LAUNCHER_IDENTIFIER,
-                            style = style,
-                            softWrap = softWarp,
-                            maxLines = maxLines
-                        )
+                        val glassBackdrop = liquidGlassBackdrop()
+                        if (glassBackdrop != null) {
+                            LiquidGlassSurface(
+                                backdrop = glassBackdrop,
+                                shape = MaterialTheme.shapes.large,
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = contentColor,
+                                blurRadius = 10.dp
+                            ) {
+                                Text(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                    text = BuildKeys.LAUNCHER_IDENTIFIER,
+                                    style = style,
+                                    softWrap = softWarp,
+                                    maxLines = maxLines
+                                )
+                            }
+                        } else {
+                            Text(
+                                text = BuildKeys.LAUNCHER_IDENTIFIER,
+                                style = style,
+                                softWrap = softWarp,
+                                maxLines = maxLines
+                            )
+                        }
                     } else {
                         FestivalTitleText(
                             festivals = festivals,
@@ -449,12 +468,28 @@ private fun TopBarRailItem(
         onClick = onClick,
         text = {
             AnimatedVisibility(visible = selected) {
-                Row {
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = text,
-                        style = textStyle
-                    )
+                val glassBackdrop = liquidGlassBackdrop()
+                if (glassBackdrop != null) {
+                    LiquidGlassSurface(
+                        backdrop = glassBackdrop,
+                        shape = MaterialTheme.shapes.large,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = LocalContentColor.current,
+                        blurRadius = 8.dp
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = text, style = textStyle)
+                        }
+                    }
+                } else {
+                    Row {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(text = text, style = textStyle)
+                    }
                 }
             }
         },

@@ -36,6 +36,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -54,7 +56,9 @@ import com.movtery.zalithlauncher.game.download.assets.favorites.FavoriteProject
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -203,23 +207,43 @@ private fun TabMenu(
                 )
             }
 
-            NavigationRailItem(
-                selected = backScreenViewModel.downloadScreen.currentKey == item.key,
-                onClick = {
-                    backStack.navigateOnce(item.key)
-                },
-                icon = {
-                    item.icon()
-                },
-                label = {
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        text = stringResource(item.textRes),
-                        maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+            val glassBackdrop = liquidGlassBackdrop()
+            val categoryContent: @Composable () -> Unit = {
+                NavigationRailItem(
+                    selected = backScreenViewModel.downloadScreen.currentKey == item.key,
+                    onClick = {
+                        backStack.navigateOnce(item.key)
+                    },
+                    colors = if (glassBackdrop != null) {
+                        NavigationRailItemDefaults.colors(indicatorColor = Color.Transparent)
+                    } else {
+                        NavigationRailItemDefaults.colors()
+                    },
+                    icon = {
+                        item.icon()
+                    },
+                    label = {
+                        Text(
+                            modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                            text = stringResource(item.textRes),
+                            maxLines = 1,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                )
+            }
+            if (glassBackdrop != null) {
+                LiquidGlassSurface(
+                    backdrop = glassBackdrop,
+                    shape = MaterialTheme.shapes.large,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    blurRadius = 8.dp
+                ) {
+                    categoryContent()
                 }
-            )
+            } else {
+                categoryContent()
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
         }
