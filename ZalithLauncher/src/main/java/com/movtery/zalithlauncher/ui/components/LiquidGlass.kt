@@ -96,9 +96,11 @@ fun LiquidGlassSurface(
                     awaitFirstDown(requireUnconsumed = false)
                     isPressed = true
                     try {
+                        var pointerPressed: Boolean
                         do {
                             val event = awaitPointerEvent()
-                        } while (event.changes.any { it.pressed })
+                            pointerPressed = event.changes.any { it.pressed }
+                        } while (pointerPressed)
                     } finally {
                         isPressed = false
                     }
