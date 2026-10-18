@@ -48,6 +48,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.RichTooltip
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -287,37 +294,41 @@ private fun <E: TitledNavKey> TopBar(
                     Row(modifier = Modifier.fillMaxHeight()) {
                         Spacer(Modifier.width(12.dp))
 
-                        IconButton(
-                            modifier = Modifier.fillMaxHeight(),
-                            onClick = {
-                                if (!inLauncherScreen) {
-                                    //不在主屏幕时才允许返回
-                                    backDispatcher?.onBackPressed() ?: run {
-                                        onScreenBack()
+                        ToolbarTooltip(label = stringResource(R.string.generic_back)) {
+                            IconButton(
+                                modifier = Modifier.fillMaxHeight(),
+                                onClick = {
+                                    if (!inLauncherScreen) {
+                                        //不在主屏幕时才允许返回
+                                        backDispatcher?.onBackPressed() ?: run {
+                                            onScreenBack()
+                                        }
                                     }
                                 }
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(R.drawable.ic_arrow_back),
+                                    contentDescription = stringResource(R.string.generic_back)
+                                )
                             }
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(24.dp),
-                                painter = painterResource(R.drawable.ic_arrow_back),
-                                contentDescription = stringResource(R.string.generic_back)
-                            )
                         }
 
-                        IconButton(
-                            modifier = Modifier.fillMaxHeight(),
-                            onClick = {
-                                if (!inLauncherScreen) {
-                                    //不在主屏幕时才允许回到主页面
-                                    toMainScreen()
+                        ToolbarTooltip(label = stringResource(R.string.generic_main_menu)) {
+                            IconButton(
+                                modifier = Modifier.fillMaxHeight(),
+                                onClick = {
+                                    if (!inLauncherScreen) {
+                                        //不在主屏幕时才允许回到主页面
+                                        toMainScreen()
+                                    }
                                 }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_home_filled),
+                                    contentDescription = stringResource(R.string.generic_main_menu)
+                                )
                             }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_home_filled),
-                                contentDescription = stringResource(R.string.generic_main_menu)
-                            )
                         }
                     }
                 }
@@ -405,53 +416,84 @@ private fun <E: TitledNavKey> TopBar(
                         targetOffsetY = { -50 }
                     ) + fadeOut()
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .clip(shape = MaterialTheme.shapes.large)
-                            .clickable { changeExpandedState() }
-                            .padding(all = 8.dp)
-                            .width(120.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    ToolbarTooltip(label = stringResource(R.string.main_task_menu)) {
+                        Row(
+                            modifier = Modifier
+                                .clip(shape = MaterialTheme.shapes.large)
+                                .clickable { changeExpandedState() }
+                                .padding(all = 8.dp)
+                                .width(120.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            LinearProgressIndicator(modifier = Modifier.weight(1f))
+                            Icon(
+                                modifier = Modifier.size(22.dp),
+                                painter = painterResource(R.drawable.ic_assignment_filled),
+                                contentDescription = stringResource(R.string.main_task_menu)
+                            )
+                        }
+                    }
+                }
+
+                ToolbarTooltip(label = "File manager") {
+                    IconButton(
+                        onClick = openFileManager
                     ) {
-                        LinearProgressIndicator(modifier = Modifier.weight(1f))
                         Icon(
-                            modifier = Modifier.size(22.dp),
-                            painter = painterResource(R.drawable.ic_assignment_filled),
-                            contentDescription = stringResource(R.string.main_task_menu)
+                            painter = painterResource(R.drawable.ic_folder_filled),
+                            contentDescription = "File manager"
                         )
                     }
                 }
 
-                IconButton(
-                    onClick = openFileManager
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_folder_filled),
-                        contentDescription = null
+                ToolbarTooltip(label = stringResource(R.string.generic_download)) {
+                    TopBarRailItem(
+                        selected = inDownloadScreen,
+                        painter = painterResource(R.drawable.ic_download_2_filled),
+                        text = stringResource(R.string.generic_download),
+                        onClick = {
+                            if (!inDownloadScreen) toDownloadScreen()
+                        },
                     )
                 }
 
-                TopBarRailItem(
-                    selected = inDownloadScreen,
-                    painter = painterResource(R.drawable.ic_download_2_filled),
-                    text = stringResource(R.string.generic_download),
-                    onClick = {
-                        if (!inDownloadScreen) toDownloadScreen()
-                    },
-                )
-
-                TopBarRailItem(
-                    selected = inSettingsScreen,
-                    painter = painterResource(R.drawable.ic_settings_filled),
-                    text = stringResource(R.string.generic_setting),
-                    onClick = {
-                        if (!inSettingsScreen) toSettingsScreen()
-                    },
-                )
+                ToolbarTooltip(label = stringResource(R.string.generic_setting)) {
+                    TopBarRailItem(
+                        selected = inSettingsScreen,
+                        painter = painterResource(R.drawable.ic_settings_filled),
+                        text = stringResource(R.string.generic_setting),
+                        onClick = {
+                            if (!inSettingsScreen) toSettingsScreen()
+                        },
+                    )
+                }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ToolbarTooltip(
+    label: String,
+    content: @Composable () -> Unit
+) {
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+            positioning = TooltipAnchorPosition.Below
+        ),
+        tooltip = {
+            RichTooltip(
+                title = { Text(text = label) },
+                shadowElevation = 3.dp
+            ) {
+                Text(text = label)
+            }
+        },
+        state = rememberTooltipState(),
+        content = content
+    )
 }
 
 @Composable
