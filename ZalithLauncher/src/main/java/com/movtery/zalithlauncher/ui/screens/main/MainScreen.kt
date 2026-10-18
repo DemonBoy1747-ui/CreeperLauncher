@@ -484,10 +484,7 @@ private fun ToolbarTooltip(
             positioning = TooltipAnchorPosition.Below
         ),
         tooltip = {
-            RichTooltip(
-                title = { Text(text = label) },
-                shadowElevation = 3.dp
-            ) {
+            RichTooltip(shadowElevation = 3.dp) {
                 Text(text = label)
             }
         },
