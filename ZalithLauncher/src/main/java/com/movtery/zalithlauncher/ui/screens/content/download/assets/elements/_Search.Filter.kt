@@ -82,6 +82,8 @@ import com.movtery.zalithlauncher.game.download.assets.platform.PlatformSortFiel
 import com.movtery.zalithlauncher.game.download.assets.utils.ModTranslations
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
@@ -106,6 +108,24 @@ import com.movtery.zalithlauncher.utils.animation.getAnimateTween
  * @param extraFilter 额外的过滤器UI
  */
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DownloadFilterGlass(content: @Composable () -> Unit) {
+    val backdrop = liquidGlassBackdrop()
+    if (backdrop != null) {
+        LiquidGlassSurface(
+            backdrop = backdrop,
+            shape = MaterialTheme.shapes.large,
+            modifier = Modifier.fillMaxWidth(),
+            containerColor = MaterialTheme.colorScheme.surface,
+            blurRadius = 10.dp
+        ) {
+            content()
+        }
+    } else {
+        content()
+    }
+}
+
 @Composable
 fun SearchFilter(
     modifier: Modifier = Modifier,
@@ -137,6 +157,7 @@ fun SearchFilter(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
+            DownloadFilterGlass {
             SuggestionsText(
                 value = searchName,
                 onValueChange = onSearchNameChange,
@@ -165,9 +186,11 @@ fun SearchFilter(
                     onSearch()
                 }
             )
+            }
         }
 
         item {
+            DownloadFilterGlass {
             SuggestionsText(
                 value = gameVersion,
                 onValueChange = onGameVersionChange,
@@ -185,21 +208,25 @@ fun SearchFilter(
                     onSearch()
                 }
             )
+            }
         }
 
         extraFilter?.invoke(this@LazyColumn)
 
         if (enablePlatform) {
             item {
+            DownloadFilterGlass {
                 PlatformListLayout(
                     modifier = Modifier.fillMaxWidth(),
                     searchPlatform = searchPlatform,
                     onPlatformChange = onPlatformChange,
                 )
             }
+            }
         }
 
         item {
+            DownloadFilterGlass {
             FilterListLayout(
                 modifier = Modifier.fillMaxWidth(),
                 items = PlatformSortField.entries,
@@ -216,9 +243,11 @@ fun SearchFilter(
                 title = stringResource(R.string.sort_by),
                 cancelable = false
             )
+            }
         }
 
         item {
+            DownloadFilterGlass {
             FilterListLayout(
                 modifier = Modifier.fillMaxWidth(),
                 items = allCategories,
@@ -234,10 +263,12 @@ fun SearchFilter(
                 },
                 title = stringResource(R.string.download_assets_filter_category)
             )
+            }
         }
 
         if (enableModLoader) {
             item {
+            DownloadFilterGlass {
                 FilterListLayout(
                     modifier = Modifier.fillMaxWidth(),
                     items = modloaders,
@@ -252,6 +283,7 @@ fun SearchFilter(
                     },
                     title = stringResource(R.string.download_assets_filter_modloader)
                 )
+            }
             }
         }
     }
