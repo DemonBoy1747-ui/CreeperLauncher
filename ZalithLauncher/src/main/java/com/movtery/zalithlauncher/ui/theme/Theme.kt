@@ -675,11 +675,11 @@ fun ZalithLauncherTheme(
         }
     }
 
-    //Liquid Glass：仅在设置开启且背景为图片时提供可采样的背景图层
+    //Liquid Glass：仅在设置开启且存在有效背景媒体时提供可采样的背景图层
     val glassLayer = rememberPrismalGlassLayer()
     val activeGlassLayer = glassLayer.takeIf {
         AllSettings.launcherLiquidGlass.state &&
-                backgroundViewModel?.let { vm -> vm.isValid && vm.isImage } == true
+                backgroundViewModel?.isValid == true
     }
 
     CompositionLocalProvider(
