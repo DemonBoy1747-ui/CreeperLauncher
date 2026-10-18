@@ -40,6 +40,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -54,6 +55,7 @@ import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
@@ -349,6 +351,9 @@ private fun VersionManagementLayout(
 
             FlowRow {
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = onEditSummary
                 ) {
@@ -357,6 +362,9 @@ private fun VersionManagementLayout(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = onRename
                 ) {
@@ -365,6 +373,9 @@ private fun VersionManagementLayout(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = onExport
                 ) {
@@ -373,6 +384,9 @@ private fun VersionManagementLayout(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     enabled = logExists,
                     onClick = {
@@ -423,6 +437,9 @@ private fun VersionQuickActions(
 
             FlowRow {
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder("") }
                 ) {
@@ -431,6 +448,9 @@ private fun VersionQuickActions(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder(VersionFolders.SAVES.folderName) }
                 ) {
@@ -439,6 +459,9 @@ private fun VersionQuickActions(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder(VersionFolders.RESOURCE_PACK.folderName) }
                 ) {
@@ -447,6 +470,9 @@ private fun VersionQuickActions(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder(VersionFolders.SHADERS.folderName) }
                 ) {
@@ -455,6 +481,9 @@ private fun VersionQuickActions(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder(VersionFolders.MOD.folderName) }
                 ) {
@@ -463,6 +492,9 @@ private fun VersionQuickActions(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder("screenshots") }
                 ) {
@@ -471,6 +503,9 @@ private fun VersionQuickActions(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder("logs") }
                 ) {
@@ -479,6 +514,9 @@ private fun VersionQuickActions(
                     )
                 }
                 OutlinedButton(
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
+                    ),
                     modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder("crash-reports") }
                 ) {

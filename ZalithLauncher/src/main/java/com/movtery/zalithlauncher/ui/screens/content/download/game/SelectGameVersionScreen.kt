@@ -83,6 +83,8 @@ import com.movtery.zalithlauncher.ui.components.CheckChip
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
+import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -296,18 +298,27 @@ private fun SelectGameVersionContent(
 
             is VersionState.None -> {
                 Column {
-                    VersionHeader(
+                    BackgroundCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 12.dp),
-                        versionFilter = viewModel.versionFilter,
-                        onVersionFilterChange = { viewModel.filterWith(it) },
-                        itemContainerColor = cardColor(),
-                        itemContentColor = onCardColor(),
-                        onRefreshClick = {
-                            viewModel.refresh(true)
-                        }
-                    )
+                        shape = MaterialTheme.shapes.large,
+                        liquidGlass = true
+                    ) {
+                        val glassActive = liquidGlassBackdrop() != null
+                        VersionHeader(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 8.dp),
+                            versionFilter = viewModel.versionFilter,
+                            onVersionFilterChange = { viewModel.filterWith(it) },
+                            itemContainerColor = if (glassActive) Color.Transparent else cardColor(),
+                            itemContentColor = if (glassActive) Color.White else onCardColor(),
+                            onRefreshClick = {
+                                viewModel.refresh(true)
+                            }
+                        )
+                    }
 
                     VersionList(
                         modifier = Modifier.weight(1f),

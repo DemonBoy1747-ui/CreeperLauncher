@@ -281,7 +281,10 @@ private fun <E: TitledNavKey> TopBar(
                 LiquidGlassSurface(
                     backdrop = leftGlassBackdrop,
                     shape = MaterialTheme.shapes.large,
-                    modifier = Modifier.constrainAs(leftGlass) {
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .constrainAs(leftGlass) {
                         start.linkTo(parent.start)
                         end.linkTo(title.end)
                         top.linkTo(parent.top)

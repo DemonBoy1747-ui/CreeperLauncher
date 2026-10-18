@@ -36,12 +36,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
@@ -165,6 +167,13 @@ private fun TabMenu(
                     blurRadius = 8.dp
                 ) {
                 NavigationRailItem(
+                    colors = NavigationRailItemDefaults.colors(
+                        indicatorColor = if (glassBackdrop != null) Color.Transparent else MaterialTheme.colorScheme.secondaryContainer,
+                        selectedIconColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSecondaryContainer,
+                        selectedTextColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSecondaryContainer,
+                        unselectedIconColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
                     selected = settingsScreenKey == item.key,
                     onClick = {
                         navigateTo(item.key)
@@ -184,6 +193,13 @@ private fun TabMenu(
                 }
             } else {
                 NavigationRailItem(
+                    colors = NavigationRailItemDefaults.colors(
+                        indicatorColor = if (glassBackdrop != null) Color.Transparent else MaterialTheme.colorScheme.secondaryContainer,
+                        selectedIconColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSecondaryContainer,
+                        selectedTextColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSecondaryContainer,
+                        unselectedIconColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
                     selected = settingsScreenKey == item.key,
                     onClick = {
                         navigateTo(item.key)

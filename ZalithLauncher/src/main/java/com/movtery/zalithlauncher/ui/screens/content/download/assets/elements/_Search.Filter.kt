@@ -420,13 +420,26 @@ fun BaseFilterLayout(
     content: @Composable () -> Unit
 ) {
     @Composable
-    fun Content() {
+    fun Content(glass: Boolean = false) {
         Column(
-            modifier = Modifier.backgroundGlass(blur, color, influencedByBackground)
+            modifier = if (glass) Modifier else Modifier.backgroundGlass(blur, color, influencedByBackground)
         ) { content() }
     }
 
-    if (onClick != null) {
+    val glassBackdrop = liquidGlassBackdrop()
+    if (glassBackdrop != null) {
+        LiquidGlassSurface(
+            backdrop = glassBackdrop,
+            shape = shape,
+            modifier = modifier,
+            containerColor = color,
+            contentColor = Color.White,
+            blurRadius = 10.dp,
+            onClick = onClick
+        ) {
+            Content(glass = true)
+        }
+    } else if (onClick != null) {
         Surface(
             modifier = modifier,
             shape = shape,
