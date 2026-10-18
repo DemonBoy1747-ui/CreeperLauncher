@@ -57,6 +57,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalWindowInfo
@@ -108,11 +109,9 @@ fun SimpleAlertDialog(
     onDismiss: () -> Unit
 ) {
     AlertDialog(
-        colors = AlertDialogDefaults.colors(
-            containerColor = if (liquidGlassBackdrop() != null) MaterialTheme.colorScheme.surface.copy(alpha = 0.42f) else AlertDialogDefaults.colors().containerColor,
-            titleContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
-            textContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface
-        ),
+        containerColor = if (liquidGlassBackdrop() != null) MaterialTheme.colorScheme.surface.copy(alpha = 0.42f) else MaterialTheme.colorScheme.surface,
+        titleContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
+        textContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
         onDismissRequest = {
             if (dismissByDialog) onDismiss()
         },
@@ -162,11 +161,9 @@ fun SimpleAlertDialog(
     onDismiss: () -> Unit
 ) {
     AlertDialog(
-        colors = AlertDialogDefaults.colors(
-            containerColor = if (liquidGlassBackdrop() != null) MaterialTheme.colorScheme.surface.copy(alpha = 0.42f) else AlertDialogDefaults.colors().containerColor,
-            titleContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
-            textContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface
-        ),
+        containerColor = if (liquidGlassBackdrop() != null) MaterialTheme.colorScheme.surface.copy(alpha = 0.42f) else MaterialTheme.colorScheme.surface,
+        titleContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
+        textContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
         onDismissRequest = {
             if (dismissByDialog) onDismiss()
         },
@@ -205,11 +202,9 @@ fun SimpleAlertDialog(
     onDismissRequest: () -> Unit = {}
 ) {
     AlertDialog(
-        colors = AlertDialogDefaults.colors(
-            containerColor = if (liquidGlassBackdrop() != null) MaterialTheme.colorScheme.surface.copy(alpha = 0.42f) else AlertDialogDefaults.colors().containerColor,
-            titleContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
-            textContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface
-        ),
+        containerColor = if (liquidGlassBackdrop() != null) MaterialTheme.colorScheme.surface.copy(alpha = 0.42f) else MaterialTheme.colorScheme.surface,
+        titleContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
+        textContentColor = if (liquidGlassBackdrop() != null) Color.White else MaterialTheme.colorScheme.onSurface,
         onDismissRequest = onDismissRequest,
         title = {
             Text(

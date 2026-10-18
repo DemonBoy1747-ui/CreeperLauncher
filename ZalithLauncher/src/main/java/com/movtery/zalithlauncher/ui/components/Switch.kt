@@ -56,19 +56,19 @@ fun DefaultSwitch(
         SwitchDefaults.colors(
             checkedThumbColor = Color.White,
             checkedTrackColor = Color.White.copy(alpha = 0.24f),
-            checkedTrackBorderColor = Color.White.copy(alpha = 0.56f),
+            checkedBorderColor = Color.White.copy(alpha = 0.56f),
             checkedIconColor = Color(0xFF202124),
             uncheckedThumbColor = Color.White.copy(alpha = 0.86f),
             uncheckedTrackColor = Color.White.copy(alpha = 0.10f),
-            uncheckedTrackBorderColor = Color.White.copy(alpha = 0.38f),
+            uncheckedBorderColor = Color.White.copy(alpha = 0.38f),
             uncheckedIconColor = Color.White.copy(alpha = 0.82f),
             disabledCheckedThumbColor = Color.White.copy(alpha = 0.56f),
             disabledCheckedTrackColor = Color.White.copy(alpha = 0.12f),
-            disabledCheckedTrackBorderColor = Color.White.copy(alpha = 0.25f),
+            disabledCheckedBorderColor = Color.White.copy(alpha = 0.25f),
             disabledCheckedIconColor = Color.DarkGray.copy(alpha = 0.7f),
             disabledUncheckedThumbColor = Color.White.copy(alpha = 0.5f),
             disabledUncheckedTrackColor = Color.White.copy(alpha = 0.06f),
-            disabledUncheckedTrackBorderColor = Color.White.copy(alpha = 0.18f),
+            disabledUncheckedBorderColor = Color.White.copy(alpha = 0.18f),
             disabledUncheckedIconColor = Color.White.copy(alpha = 0.4f)
         )
     } else colors
