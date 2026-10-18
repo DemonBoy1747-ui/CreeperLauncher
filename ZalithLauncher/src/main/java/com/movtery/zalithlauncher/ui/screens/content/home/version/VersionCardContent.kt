@@ -66,6 +66,8 @@ import com.movtery.cardgrid.model.CardState
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.content.home.CardIconShape
 
@@ -110,10 +112,25 @@ fun CardState.VersionCardContent(cardId: String) {
                     currentVersion?.let(onOpenSettings)
                 }
             }
-            .padding(12.dp)
     ) {
-        when {
-            sizeClass.width >= CardSizeClass.MEDIUM &&
+        val glassBackdrop = liquidGlassBackdrop()
+        if (glassBackdrop != null) {
+            LiquidGlassSurface(
+                backdrop = glassBackdrop,
+                shape = MaterialTheme.shapes.large,
+                modifier = Modifier.fillMaxSize(),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                blurRadius = 10.dp
+            ) {}
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
+        ) {
+            when {
+                sizeClass.width >= CardSizeClass.MEDIUM &&
                     sizeClass.height >= CardSizeClass.LARGE -> TallContent(
                 card = card,
                 version = version,
@@ -148,6 +165,7 @@ fun CardState.VersionCardContent(cardId: String) {
                 textButton = sizeClass.width >= CardSizeClass.LARGE,
                 spacing = if (sizeClass.width <= CardSizeClass.SMALL) 6.dp else 12.dp
             )
+            }
         }
     }
 }
