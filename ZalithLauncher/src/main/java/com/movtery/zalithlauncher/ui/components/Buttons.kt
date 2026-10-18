@@ -100,21 +100,47 @@ fun ScalingActionButton(
         label = "ButtonScale"
     )
 
-    Button(
-        onClick = onClick,
-        modifier = modifier.graphicsLayer {
-            scaleX = scale.value
-            scaleY = scale.value
-        },
-        enabled = enabled,
-        shape = shape,
-        colors = colors,
-        elevation = elevation,
-        border = border,
-        contentPadding = contentPadding,
-        interactionSource = interactionSource,
-        content = content
-    )
+    val glassBackdrop = liquidGlassBackdrop()
+    if (glassBackdrop != null) {
+        LiquidGlassSurface(
+            backdrop = glassBackdrop,
+            shape = shape,
+            modifier = modifier,
+            containerColor = if (enabled) colors.containerColor else colors.disabledContainerColor,
+            contentColor = if (enabled) colors.contentColor else colors.disabledContentColor,
+            blurRadius = 8.dp,
+            onClick = if (enabled) onClick else null
+        ) {
+            Row(
+                modifier = Modifier
+                    .defaultMinSize(
+                        minWidth = ButtonDefaults.MinWidth,
+                        minHeight = ButtonDefaults.MinHeight
+                    )
+                    .padding(contentPadding)
+                    .alpha(if (enabled) 1f else DisabledAlpha),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                content = content
+            )
+        }
+    } else {
+        Button(
+            onClick = onClick,
+            modifier = modifier.graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            },
+            enabled = enabled,
+            shape = shape,
+            colors = colors,
+            elevation = elevation,
+            border = border,
+            contentPadding = contentPadding,
+            interactionSource = interactionSource,
+            content = content
+        )
+    }
 }
 
 @Composable
