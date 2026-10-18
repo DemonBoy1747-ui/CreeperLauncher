@@ -72,7 +72,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.ray.launcher.v2"
+        applicationId = "com.kedamc.launcher.v2"
         minSdk = 26
         targetSdk = 34
         versionCode = launcherVersionCode
