@@ -70,6 +70,7 @@ import com.movtery.zalithlauncher.path.URL_WEBLATE
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedLazyColumn
 import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -117,7 +118,7 @@ fun AboutInfoScreen(
                             title = stringResource(R.string.about_launcher_author_movtery_title),
                             text = stringResource(R.string.about_launcher_author_movtery_text),
                             button = {
-                                Button(
+                                ScalingActionButton(
                                     onClick = { openLink(URL_SUPPORT) }
                                 ) {
                                     Text(text = stringResource(R.string.about_sponsor))
@@ -147,7 +148,7 @@ fun AboutInfoScreen(
                             title = "bangbang93",
                             text = stringResource(R.string.about_acknowledgements_bangbang93_text, BuildKeys.LAUNCHER_SHORT_NAME),
                             button = {
-                                Button(
+                                ScalingActionButton(
                                     onClick = { openLink("https://ifdian.net/a/bangbang93") }
                                 ) {
                                     Text(text = stringResource(R.string.about_sponsor))
@@ -179,7 +180,7 @@ fun AboutInfoScreen(
                             title = "mcmod-info-mirror",
                             text = stringResource(R.string.about_acknowledgements_mcim_text, BuildKeys.LAUNCHER_SHORT_NAME),
                             button = {
-                                Button(
+                                ScalingActionButton(
                                     onClick = { openLink("https://www.mcimirror.top/sponsor") }
                                 ) {
                                     Text(text = stringResource(R.string.about_sponsor))
