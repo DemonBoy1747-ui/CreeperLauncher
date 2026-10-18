@@ -359,6 +359,8 @@ private fun <E: TitledNavKey> TopBar(
                 modifier = Modifier.constrainAs(title) {
                     centerVerticallyTo(parent)
                     start.linkTo(backCenter.end, margin = 16.dp)
+                    // Keep the title surface at its content width and leave room for toolbar actions.
+                    end.linkTo(endButtons.start, margin = 8.dp)
                 },
                 targetState = parentRes to childRes
             ) { (parent, child) ->
