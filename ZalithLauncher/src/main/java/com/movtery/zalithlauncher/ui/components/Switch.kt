@@ -77,7 +77,7 @@ fun DefaultSwitch(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            modifier = Modifier.padding(horizontal = 2.dp, vertical = 1.dp),
+            modifier = Modifier,
             enabled = enabled,
             thumbContent = {
                 val rotation by animateFloatAsState(if (checked) 0.0f else -(180.0f))

@@ -345,7 +345,7 @@ private fun <E> SuggestionsText(
                 unfocusedContainerColor = Color.Transparent,
                 disabledContainerColor = Color.Transparent,
                 errorContainerColor = Color.Transparent,
-                focusedBorderColor = Color.White.copy(alpha = 0.45f),
+                focusedBorderColor = Color.Transparent,
                 unfocusedBorderColor = Color.Transparent,
                 disabledBorderColor = Color.Transparent
             ),
