@@ -105,7 +105,9 @@ fun ScalingActionButton(
         LiquidGlassSurface(
             backdrop = glassBackdrop,
             shape = shape,
-            modifier = modifier,
+            modifier = modifier.then(
+                if (enabled) Modifier.liquidGlassPressAnimation() else Modifier
+            ),
             containerColor = if (enabled) colors.containerColor else colors.disabledContainerColor,
             contentColor = if (enabled) colors.contentColor else colors.disabledContentColor,
             blurRadius = 8.dp,
