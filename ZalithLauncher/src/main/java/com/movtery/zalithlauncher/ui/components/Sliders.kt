@@ -132,6 +132,8 @@ fun SimpleTextSlider(
             }
         }
 
+        val backdrop = liquidGlassBackdrop()
+        val valueTextColor = if (backdrop != null) Color.White else MaterialTheme.colorScheme.onPrimary
         val valueContent: @Composable () -> Unit = {
             Row(
                 modifier = Modifier.padding(PaddingValues(horizontal = 8.dp, vertical = 4.dp)),
@@ -143,8 +145,8 @@ fun SimpleTextSlider(
                         else Modifier
                     )
                 ) {
-                    Text(text = getTextString(value), color = Color.White)
-                    suffix?.let { text -> Text(text = text, color = Color.White) }
+                    Text(text = getTextString(value), color = valueTextColor)
+                    suffix?.let { text -> Text(text = text, color = valueTextColor) }
                 }
                 if (fineTuningControl) {
                     Spacer(modifier = Modifier.width(8.dp))
@@ -179,7 +181,6 @@ fun SimpleTextSlider(
             .alpha(if (enabled) 1f else DisabledAlpha)
             .padding(start = 12.dp)
             .align(Alignment.CenterVertically)
-        val backdrop = liquidGlassBackdrop()
         if (backdrop != null) {
             LiquidGlassSurface(
                 backdrop = backdrop,
