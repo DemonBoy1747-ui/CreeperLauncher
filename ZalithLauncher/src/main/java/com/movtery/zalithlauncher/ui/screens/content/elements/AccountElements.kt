@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import android.annotation.SuppressLint
+import com.movtery.zalithlauncher.ui.components.glassRadioColors
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -318,6 +319,7 @@ fun AccountItem(
                 .padding(all = 8.dp)
         ) {
             RadioButton(
+                colors = glassRadioColors(),
                 selected = selected,
                 onClick = {
                     if (selected || !enabled) return@RadioButton
@@ -1730,6 +1732,7 @@ fun CapeListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
+            colors = glassRadioColors(),
             selected = selected,
             onClick = onClick
         )

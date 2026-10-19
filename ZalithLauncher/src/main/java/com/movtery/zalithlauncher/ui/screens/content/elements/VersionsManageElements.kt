@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import androidx.annotation.DrawableRes
+import com.movtery.zalithlauncher.ui.components.glassRadioColors
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
@@ -745,6 +746,7 @@ fun VersionItemLayout(
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
+                colors = glassRadioColors(),
                 selected = selected,
                 onClick = {
                     if (selected) return@RadioButton

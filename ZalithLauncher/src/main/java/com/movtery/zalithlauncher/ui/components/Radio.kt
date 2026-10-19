@@ -43,6 +43,20 @@ import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 
+/**
+ * Radio button colors: pure white while Liquid Glass is active, Material defaults otherwise.
+ */
+@Composable
+fun glassRadioColors(): RadioButtonColors {
+    if (liquidGlassBackdrop() == null) return RadioButtonDefaults.colors()
+    return RadioButtonDefaults.colors(
+        selectedColor = Color.White,
+        unselectedColor = Color.White,
+        disabledSelectedColor = Color.White.copy(alpha = 0.38f),
+        disabledUnselectedColor = Color.White.copy(alpha = 0.38f)
+    )
+}
+
 @Composable
 fun RadioCard(
     selected: Boolean,
@@ -52,7 +66,7 @@ fun RadioCard(
     enabled: Boolean = true,
     color: Color = itemColor(false),
     contentColor: Color = onItemColor(),
-    radioColors: RadioButtonColors = RadioButtonDefaults.colors(),
+    radioColors: RadioButtonColors = glassRadioColors(),
     interactionSource: MutableInteractionSource? = null,
     textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
@@ -82,7 +96,7 @@ fun RadioCard(
     color: Color = itemColor(false),
     contentColor: Color = onItemColor(),
     shape: Shape = MaterialTheme.shapes.large,
-    radioColors: RadioButtonColors = RadioButtonDefaults.colors(),
+    radioColors: RadioButtonColors = glassRadioColors(),
     interactionSource: MutableInteractionSource? = null,
     content: @Composable RowScope.() -> Unit,
 ) {

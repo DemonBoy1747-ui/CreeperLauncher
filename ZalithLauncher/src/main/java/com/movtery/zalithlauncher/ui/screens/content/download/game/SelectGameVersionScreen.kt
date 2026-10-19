@@ -84,6 +84,7 @@ import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.ui.components.GlassItemSurface
 import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
 import com.movtery.zalithlauncher.ui.components.fadeEdge
@@ -506,7 +507,8 @@ private fun VersionItemLayout(
 
     val (icon, versionType, wikiUrl, summary) = getVersionComponents(version)
 
-    Surface(
+    val glassItem = liquidGlassBackdrop() != null
+    GlassItemSurface(
         modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
         onClick = onClick,
         shape = shape,
@@ -516,7 +518,7 @@ private fun VersionItemLayout(
         Row(
             modifier = Modifier
                 .clip(shape = shape)
-                .backgroundGlass(blur, color, influencedByBackground)
+                .backgroundGlass(blur, color, influencedByBackground && !glassItem)
                 .padding(all = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

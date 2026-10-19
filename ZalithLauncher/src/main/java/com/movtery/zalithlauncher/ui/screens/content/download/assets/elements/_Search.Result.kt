@@ -92,6 +92,8 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.ui.components.GlassItemSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SmallOutlinedEditField
@@ -300,7 +302,7 @@ private fun PageController(
         }
     }
 
-    Surface(
+    GlassItemSurface(
         modifier = modifier,
         shape = shape,
         color = Color.Transparent,
@@ -368,11 +370,20 @@ private fun ResultList(
     installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null
 ) {
     val context = LocalContext.current
-    BackgroundCard(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge,
-        liquidGlass = true
-    ) {
+    // With Liquid Glass every entry has its own glass box, so no big backing card here.
+    val glassActive = liquidGlassBackdrop() != null
+    val container: @Composable (@Composable () -> Unit) -> Unit = { inner ->
+        if (glassActive) {
+            Box(modifier = modifier) { inner() }
+        } else {
+            BackgroundCard(
+                modifier = modifier,
+                shape = MaterialTheme.shapes.extraLarge,
+                liquidGlass = true
+            ) { inner() }
+        }
+    }
+    container {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             state = state,
@@ -445,7 +456,8 @@ fun ResultProjectLayout(
         scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
     }
 
-    Surface(
+    val glassItem = liquidGlassBackdrop() != null
+    GlassItemSurface(
         modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
         shape = shape,
         color = color,
@@ -454,7 +466,7 @@ fun ResultProjectLayout(
     ) {
         Row(
             modifier = Modifier
-                .backgroundGlass(blur, color, influencedByBackground)
+                .backgroundGlass(blur, color, influencedByBackground && !glassItem)
                 .padding(all = 8.dp)
                 .height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(12.dp)

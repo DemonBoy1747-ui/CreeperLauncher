@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.download.game
 
 import androidx.compose.animation.AnimatedVisibility
+import com.movtery.zalithlauncher.ui.components.glassRadioColors
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeOut
@@ -418,6 +419,7 @@ fun AddonListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
+            colors = glassRadioColors(),
             selected = selected,
             onClick = onClick
         )

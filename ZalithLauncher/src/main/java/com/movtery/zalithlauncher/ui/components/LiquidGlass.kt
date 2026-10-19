@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -30,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -137,7 +139,21 @@ private const val MIN_PRESS_HOLD_MS = 90L
 @Composable
 fun Modifier.liquidGlassPressAnimation(enabled: Boolean = true): Modifier {
     if (!enabled) return this
+    val press = rememberGlassPress()
+    return this.then(press.visual).then(press.gesture)
+}
 
+/**
+ * Press animation split in two so the touch area and the animated visual can differ:
+ * [gesture] drives the spring from pointer input, [visual] applies scale and highlight.
+ */
+class GlassPress internal constructor(
+    val gesture: Modifier,
+    val visual: Modifier
+)
+
+@Composable
+fun rememberGlassPress(shape: Shape? = null): GlassPress {
     val animationScope = rememberCoroutineScope()
     val pressProgress = remember { Animatable(0f) }
     val pendingRelease = remember { PendingRelease() }
@@ -183,7 +199,7 @@ fun Modifier.liquidGlassPressAnimation(enabled: Boolean = true): Modifier {
         }
     }
 
-    return this
+    val visual = Modifier
         .graphicsLayer {
             val progress = pressProgress.value
             val pressLiftPx = 4.dp.toPx()
@@ -191,6 +207,8 @@ fun Modifier.liquidGlassPressAnimation(enabled: Boolean = true): Modifier {
             scaleX = 1f + lift * progress
             scaleY = 1f + lift * progress
         }
+        // Keep the highlight inside rounded glass (otherwise it shows as a square)
+        .then(if (shape != null) Modifier.clip(shape) else Modifier)
         .drawWithContent {
             val progress = pressProgress.value
             if (progress > 0f) {
@@ -198,8 +216,53 @@ fun Modifier.liquidGlassPressAnimation(enabled: Boolean = true): Modifier {
             }
             drawContent()
         }
-        .then(pressGesture)
+    return GlassPress(gesture = pressGesture, visual = visual)
 }
+/**
+ * A clickable list item / button surface: its own Liquid Glass box when glass is active,
+ * otherwise a regular Material [Surface] with the given colors.
+ */
+@Composable
+fun GlassItemSurface(
+    shape: Shape,
+    color: Color,
+    contentColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
+    content: @Composable () -> Unit
+) {
+    val backdrop = liquidGlassBackdrop()
+    if (backdrop != null) {
+        LiquidGlassSurface(
+            backdrop = backdrop,
+            shape = shape,
+            modifier = modifier,
+            containerColor = color,
+            contentColor = Color.White,
+            onClick = onClick
+        ) {
+            content()
+        }
+    } else if (onClick != null) {
+        Surface(
+            modifier = modifier,
+            shape = shape,
+            color = color,
+            contentColor = contentColor,
+            onClick = onClick,
+            content = content
+        )
+    } else {
+        Surface(
+            modifier = modifier,
+            shape = shape,
+            color = color,
+            contentColor = contentColor,
+            content = content
+        )
+    }
+}
+
 /**
  * 条形区域（如顶部栏）：开启 Liquid Glass 时绘制玻璃背景，否则只是普通容器
  */

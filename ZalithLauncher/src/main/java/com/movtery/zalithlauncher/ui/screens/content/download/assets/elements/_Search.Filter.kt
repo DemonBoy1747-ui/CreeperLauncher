@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.download.assets.elements
 
 import androidx.compose.animation.AnimatedVisibility
+import com.movtery.zalithlauncher.ui.components.glassRadioColors
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -683,7 +684,7 @@ private fun FilterListItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         when (selectionMode) {
-            FilterSelectionMode.Single -> RadioButton(selected = selected, onClick = onClick)
+            FilterSelectionMode.Single -> RadioButton(selected = selected, onClick = onClick, colors = glassRadioColors())
             FilterSelectionMode.Multiple -> Checkbox(checked = selected, onCheckedChange = onCheckedChange)
         }
         itemLayout()

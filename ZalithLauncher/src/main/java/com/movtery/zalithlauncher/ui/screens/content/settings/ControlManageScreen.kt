@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.settings
 
 import androidx.compose.animation.core.Animatable
+import com.movtery.zalithlauncher.ui.components.glassRadioColors
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -105,6 +106,8 @@ import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedRow
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
@@ -578,16 +581,12 @@ private fun ControlLayoutItem(
     LaunchedEffect(Unit) {
         scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
     }
-    Surface(
-        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
-        color = color,
-        contentColor = contentColor,
-        shape = MaterialTheme.shapes.large,
-        onClick = {
-            if (selected) return@Surface
-            onSelected()
-        }
-    ) {
+    val glassBackdrop = liquidGlassBackdrop()
+    val itemModifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value)
+    val itemClick = {
+        if (!selected) onSelected()
+    }
+    val itemContent: @Composable () -> Unit = {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -596,6 +595,7 @@ private fun ControlLayoutItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
+                colors = glassRadioColors(),
                 selected = selected,
                 enabled = data.isSupport,
                 onClick = {
@@ -652,6 +652,29 @@ private fun ControlLayoutItem(
                     contentDescription = stringResource(R.string.generic_delete)
                 )
             }
+        }
+    }
+    if (glassBackdrop != null) {
+        // One glass capsule spanning radio, text, copy and delete
+        LiquidGlassSurface(
+            backdrop = glassBackdrop,
+            shape = MaterialTheme.shapes.large,
+            modifier = itemModifier,
+            containerColor = color,
+            contentColor = Color.White,
+            onClick = itemClick
+        ) {
+            itemContent()
+        }
+    } else {
+        Surface(
+            modifier = itemModifier,
+            color = color,
+            contentColor = contentColor,
+            shape = MaterialTheme.shapes.large,
+            onClick = itemClick
+        ) {
+            itemContent()
         }
     }
 }
@@ -849,13 +872,8 @@ private fun ControlInfoItem(
     contentColor: Color = onItemColor(),
     content: @Composable RowScope.() -> Unit
 ) {
-    Surface(
-        modifier = modifier,
-        color = color,
-        contentColor = contentColor,
-        shape = MaterialTheme.shapes.large,
-        onClick = onEdit
-    ) {
+    val glassBackdrop = liquidGlassBackdrop()
+    val rowContent: @Composable () -> Unit = {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -865,6 +883,28 @@ private fun ControlInfoItem(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             content = content
         )
+    }
+    if (glassBackdrop != null) {
+        LiquidGlassSurface(
+            backdrop = glassBackdrop,
+            shape = MaterialTheme.shapes.large,
+            modifier = modifier,
+            containerColor = color,
+            contentColor = Color.White,
+            onClick = onEdit
+        ) {
+            rowContent()
+        }
+    } else {
+        Surface(
+            modifier = modifier,
+            color = color,
+            contentColor = contentColor,
+            shape = MaterialTheme.shapes.large,
+            onClick = onEdit
+        ) {
+            rowContent()
+        }
     }
 }
 
