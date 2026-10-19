@@ -254,6 +254,10 @@ fun BaseIconTextButton(
                     onClick = onClick,
                     onLongClick = onLongClick
                 )
+                .then(
+                    if (glassBackdrop != null && enabled) Modifier.liquidGlassPressAnimation()
+                    else Modifier
+                )
                 .padding(PaddingValues(horizontal = 8.dp, vertical = 4.dp))
                 .alpha(if (enabled) 1f else DisabledAlpha),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -273,10 +277,7 @@ fun BaseIconTextButton(
         LiquidGlassSurface(
             backdrop = glassBackdrop,
             shape = shape,
-            modifier = modifier.graphicsLayer {
-                scaleX = scale.value
-                scaleY = scale.value
-            },
+            modifier = modifier,
             containerColor = MaterialTheme.colorScheme.surface,
             contentColor = LocalContentColor.current,
             blurRadius = 8.dp

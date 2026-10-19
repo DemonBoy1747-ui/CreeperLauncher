@@ -68,6 +68,7 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
 import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
+import com.movtery.zalithlauncher.ui.components.liquidGlassPressAnimation
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.content.home.CardIconShape
 
@@ -104,6 +105,7 @@ fun CardState.VersionCardContent(cardId: String) {
     val showDetails = sizeClass.height >= CardSizeClass.MEDIUM
     val iconSize = iconSizeFor(sizeClass)
 
+    val glassBackdrop = liquidGlassBackdrop()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -112,8 +114,8 @@ fun CardState.VersionCardContent(cardId: String) {
                     currentVersion?.let(onOpenSettings)
                 }
             }
+            .liquidGlassPressAnimation(enabled = glassBackdrop != null)
     ) {
-        val glassBackdrop = liquidGlassBackdrop()
         if (glassBackdrop != null) {
             LiquidGlassSurface(
                 backdrop = glassBackdrop,
