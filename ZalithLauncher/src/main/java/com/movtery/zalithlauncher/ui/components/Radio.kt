@@ -127,7 +127,9 @@ private fun InternalSurface(
         LiquidGlassSurface(
             backdrop = glassBackdrop,
             shape = shape,
-            modifier = modifier,
+            modifier = modifier.then(
+                if (enabled && onClick != null) Modifier.liquidGlassPressAnimation() else Modifier
+            ),
             containerColor = color,
             contentColor = contentColor,
             onClick = if (enabled) onClick else null
