@@ -109,12 +109,12 @@ fun CardState.VersionCardContent(cardId: String) {
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .liquidGlassPressAnimation(enabled = glassBackdrop != null)
             .homeCardTap {
                 if (currentInteraction == CardInteraction.Idle) {
                     currentVersion?.let(onOpenSettings)
                 }
             }
-            .liquidGlassPressAnimation(enabled = glassBackdrop != null)
     ) {
         if (glassBackdrop != null) {
             LiquidGlassSurface(
