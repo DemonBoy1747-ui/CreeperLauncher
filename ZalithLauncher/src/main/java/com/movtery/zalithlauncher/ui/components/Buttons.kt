@@ -247,16 +247,16 @@ fun BaseIconTextButton(
         Row(
             modifier = Modifier
                 .clip(shape = shape)
+                .then(
+                    if (glassBackdrop != null && enabled) Modifier.liquidGlassPressAnimation()
+                    else Modifier
+                )
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = null,
                     enabled = enabled,
                     onClick = onClick,
                     onLongClick = onLongClick
-                )
-                .then(
-                    if (glassBackdrop != null && enabled) Modifier.liquidGlassPressAnimation()
-                    else Modifier
                 )
                 .padding(PaddingValues(horizontal = 8.dp, vertical = 4.dp))
                 .alpha(if (enabled) 1f else DisabledAlpha),
