@@ -77,12 +77,7 @@ fun DefaultSwitch(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            modifier = Modifier
-                .padding(horizontal = 2.dp, vertical = 1.dp)
-                .then(
-                    if (glassEnabled && backdrop != null && enabled) Modifier.liquidGlassPressAnimation()
-                    else Modifier
-                ),
+            modifier = Modifier.padding(horizontal = 2.dp, vertical = 1.dp),
             enabled = enabled,
             thumbContent = {
                 val rotation by animateFloatAsState(if (checked) 0.0f else -(180.0f))
@@ -100,7 +95,16 @@ fun DefaultSwitch(
         )
     }
     if (glassEnabled && backdrop != null) {
-        LiquidGlassSurface(backdrop, CircleShape, modifier, MaterialTheme.colorScheme.surface, Color.White, 6.dp) {
+        LiquidGlassSurface(
+            backdrop = backdrop,
+            shape = CircleShape,
+            modifier = modifier.then(
+                if (enabled) Modifier.liquidGlassPressAnimation() else Modifier
+            ),
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = Color.White,
+            blurRadius = 6.dp
+        ) {
             switchContent()
         }
     } else if (glassEnabled) {
