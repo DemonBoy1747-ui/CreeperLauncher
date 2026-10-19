@@ -39,17 +39,15 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.styropyr0.prismal.PrismalGlassSurface
 import com.styropyr0.prismal.sources.PrismalGlassLayer
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.abs
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.tanh
 
 /**
  * Liquid Glass (PrismalAGSL) 采样的背景图层。
@@ -86,11 +84,28 @@ fun LiquidGlassSurface(
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
+    // PrismalGlassSurface builds its press ripple with remember(onClick, scope), but the
+    // ripple's pointer input is keyed on the scope only and keeps driving the instance
+    // created first. If onClick changes identity (any lambda capturing toggled state),
+    // drawing reads a new, never-animated ripple and the spring press disappears until
+    // the screen is recreated. Hand Prismal a callback whose identity never changes and
+    // forward to the latest onClick, so a single ripple lives as long as the surface.
+    val latestOnClick = rememberUpdatedState(onClick)
+    val hasClick = onClick != null
+    val stableOnClick: (() -> Unit)? = remember(hasClick) {
+        if (hasClick) {
+            val callback: () -> Unit = { latestOnClick.value?.invoke() }
+            callback
+        } else {
+            null
+        }
+    }
+
     PrismalGlassSurface(
         backdrop = backdrop,
         modifier = modifier,
         shape = { shape },
-        onClick = onClick,
+        onClick = stableOnClick,
         blurRadius = blurRadius,
         surfaceColor = if (containerColor.isSpecified) {
             containerColor.copy(alpha = GLASS_SURFACE_ALPHA)
@@ -104,6 +119,16 @@ fun LiquidGlassSurface(
     }
 }
 
+/** Holds the release animation that is scheduled but may not have started yet. */
+private class PendingRelease {
+    var job: Job? = null
+}
+
+private val GlassPressSpring = spring<Float>(dampingRatio = 0.48f, stiffness = 420f)
+
+/** Minimum time a press stays visible so very quick taps still show the spring. */
+private const val MIN_PRESS_HOLD_MS = 90L
+
 /**
  * Reuse PrismalAGSL's native spring press response on interactive content that is
  * not itself a PrismalGlassSurface (for example, rows inside a glass settings card).
@@ -115,6 +140,7 @@ fun Modifier.liquidGlassPressAnimation(enabled: Boolean = true): Modifier {
 
     val animationScope = rememberCoroutineScope()
     val pressProgress = remember { Animatable(0f) }
+    val pendingRelease = remember { PendingRelease() }
 
     // Observe pointer events in the Initial pass so Material clickables and switches
     // can consume their own events without cancelling the glass press animation.
@@ -125,28 +151,33 @@ fun Modifier.liquidGlassPressAnimation(enabled: Boolean = true): Modifier {
                 pass = PointerEventPass.Initial
             )
 
-            // Cancel the previous press animation before starting the release
-            // animation, so rapid taps cannot race and reset the scale early.
-            var pressAnimationJob: kotlinx.coroutines.Job? = null
-            pressAnimationJob = animationScope.launch {
-                pressProgress.animateTo(
-                    1f,
-                    spring(dampingRatio = 0.48f, stiffness = 420f)
-                )
+            // A new press owns the animation: drop any release still waiting from a previous
+            // tap (otherwise it would fire later and snap this press back to 0), then spring
+            // towards 1 from wherever the previous animation currently is.
+            pendingRelease.job?.cancel()
+            pendingRelease.job = null
+            animationScope.launch {
+                pressProgress.animateTo(1f, GlassPressSpring)
             }
+
+            var lastEventUptime = down.uptimeMillis
             try {
                 var pressed = true
                 while (pressed) {
                     val event = awaitPointerEvent(PointerEventPass.Initial)
-                    pressed = event.changes.firstOrNull { it.id == down.id }?.pressed == true
+                    val change = event.changes.firstOrNull { it.id == down.id }
+                    if (change != null) lastEventUptime = change.uptimeMillis
+                    pressed = change?.pressed == true
                 }
             } finally {
-                pressAnimationJob?.cancel()
-                animationScope.launch {
-                    pressProgress.animateTo(
-                        0f,
-                        spring(dampingRatio = 0.48f, stiffness = 420f)
-                    )
+                // Keep a very short tap pressed long enough to actually be seen, then spring
+                // back. Never cancel the press animation here: Animatable interrupts it
+                // itself and continues from the current visual value.
+                val remainingHold = (MIN_PRESS_HOLD_MS - (lastEventUptime - down.uptimeMillis))
+                    .coerceAtLeast(0L)
+                pendingRelease.job = animationScope.launch {
+                    if (remainingHold > 0L) delay(remainingHold)
+                    pressProgress.animateTo(0f, GlassPressSpring)
                 }
             }
         }
