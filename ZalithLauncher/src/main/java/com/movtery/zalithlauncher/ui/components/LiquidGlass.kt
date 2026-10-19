@@ -124,18 +124,29 @@ fun Modifier.liquidGlassPressAnimation(enabled: Boolean = true): Modifier {
                 requireUnconsumed = false,
                 pass = PointerEventPass.Initial
             )
-            animationScope.launch {
-                pressProgress.animateTo(1f, spring(dampingRatio = 0.48f, stiffness = 420f))
-            }
-            try {
-                var pressed = true
-                while (pressed) {
-                    val event = awaitPointerEvent(PointerEventPass.Initial)
-                    pressed = event.changes.firstOrNull { it.id == down.id }?.pressed == true
+
+            // Keep press and release animations in the same gesture coroutine.
+            // Launching both independently can race on rapid taps and leave the
+            // Animatable at its resting value after the first interaction.
+            kotlinx.coroutines.coroutineScope {
+                val pressAnimation = launch {
+                    pressProgress.animateTo(
+                        1f,
+                        spring(dampingRatio = 0.48f, stiffness = 420f)
+                    )
                 }
-            } finally {
-                animationScope.launch {
-                    pressProgress.animateTo(0f, spring(dampingRatio = 0.48f, stiffness = 420f))
+                try {
+                    var pressed = true
+                    while (pressed) {
+                        val event = awaitPointerEvent(PointerEventPass.Initial)
+                        pressed = event.changes.firstOrNull { it.id == down.id }?.pressed == true
+                    }
+                } finally {
+                    pressAnimation.cancel()
+                    pressProgress.animateTo(
+                        0f,
+                        spring(dampingRatio = 0.48f, stiffness = 420f)
+                    )
                 }
             }
         }
