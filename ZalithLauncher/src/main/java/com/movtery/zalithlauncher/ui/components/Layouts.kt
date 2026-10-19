@@ -57,6 +57,8 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
+import com.movtery.zalithlauncher.ui.components.liquidGlassPressAnimation
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
@@ -181,10 +183,12 @@ fun SimpleListItem(
     enabled: Boolean = true,
     onClick: () -> Unit = {}
 ) {
+    val useGlassPressAnimation = liquidGlassBackdrop() != null && enabled
     Row(
         modifier = modifier
             .clip(shape = MaterialTheme.shapes.large)
-            .clickable(enabled = enabled, onClick = onClick),
+            .clickable(enabled = enabled, onClick = onClick)
+            .liquidGlassPressAnimation(enabled = useGlassPressAnimation),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
@@ -212,12 +216,14 @@ fun SimpleListItem(
     summary: (@Composable () -> Unit)? = null,
     enabled: Boolean = true
 ) {
+    val useGlassPressAnimation = liquidGlassBackdrop() != null && enabled
     Row(
         modifier = modifier
             .clip(shape = MaterialTheme.shapes.large)
             .clickable(enabled = enabled) {
                 onCheckedChange(!checked)
-            },
+            }
+            .liquidGlassPressAnimation(enabled = useGlassPressAnimation),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Checkbox(
