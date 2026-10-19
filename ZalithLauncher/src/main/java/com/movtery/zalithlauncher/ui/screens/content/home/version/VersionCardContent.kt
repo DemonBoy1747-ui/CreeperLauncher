@@ -66,6 +66,7 @@ import com.movtery.cardgrid.model.CardState
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
+import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
 import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.liquidGlassPressAnimation
@@ -445,7 +446,7 @@ private fun CardTexts(
 @Composable
 private fun TextLaunchButton(version: Version, modifier: Modifier = Modifier) {
     val onLaunch = LocalHomeCardLauncher.current
-    Button(onClick = { onLaunch(version) }, modifier = modifier) {
+    ScalingActionButton(onClick = { onLaunch(version) }, modifier = modifier) {
         Icon(
             modifier = Modifier.size(16.dp),
             painter = painterResource(R.drawable.ic_play_arrow_filled),
@@ -462,7 +463,7 @@ private fun TextLaunchButton(version: Version, modifier: Modifier = Modifier) {
 @Composable
 private fun CompactLaunchButton(version: Version, modifier: Modifier = Modifier) {
     val onLaunch = LocalHomeCardLauncher.current
-    Button(
+    ScalingActionButton(
         onClick = { onLaunch(version) },
         modifier = modifier,
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
@@ -484,7 +485,7 @@ private fun CompactLaunchButton(version: Version, modifier: Modifier = Modifier)
 @Composable
 private fun IconLaunchButton(version: Version, modifier: Modifier = Modifier) {
     val onLaunch = LocalHomeCardLauncher.current
-    Button(
+    ScalingActionButton(
         onClick = { onLaunch(version) },
         modifier = modifier,
         shape = CircleShape,
