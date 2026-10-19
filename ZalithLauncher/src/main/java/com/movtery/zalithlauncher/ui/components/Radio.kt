@@ -41,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 
 @Composable
 fun RadioCard(
@@ -121,7 +122,19 @@ private fun InternalSurface(
     interactionSource: MutableInteractionSource? = null,
     content: @Composable () -> Unit
 ) {
-    if (onClick != null) {
+    val glassBackdrop = liquidGlassBackdrop()
+    if (glassBackdrop != null) {
+        LiquidGlassSurface(
+            backdrop = glassBackdrop,
+            shape = shape,
+            modifier = modifier,
+            containerColor = color,
+            contentColor = contentColor,
+            onClick = if (enabled) onClick else null
+        ) {
+            content()
+        }
+    } else if (onClick != null) {
         Surface(
             modifier = modifier,
             color = color,
