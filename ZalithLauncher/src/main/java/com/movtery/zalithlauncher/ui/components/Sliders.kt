@@ -108,7 +108,7 @@ fun SimpleTextSlider(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        GlassSliderTrack(modifier = Modifier.weight(1f)) {
+        GlassSliderTrack(modifier = Modifier.weight(1f), enabled = enabled) {
             if (shorter) {
                 IndicatorSlider(
                     value = value,
@@ -205,10 +205,15 @@ fun SimpleTextSlider(
 @Composable
 private fun GlassSliderTrack(
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     content: @Composable BoxScope.() -> Unit
 ) {
     val backdrop = liquidGlassBackdrop()
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier.then(
+            if (backdrop != null && enabled) Modifier.liquidGlassPressAnimation() else Modifier
+        )
+    ) {
         if (backdrop != null) {
             LiquidGlassSurface(
                 backdrop = backdrop,
