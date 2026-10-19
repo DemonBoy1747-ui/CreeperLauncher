@@ -128,10 +128,11 @@ fun Modifier.liquidGlassPressAnimation(enabled: Boolean = true): Modifier {
                 pressProgress.animateTo(1f, spring(dampingRatio = 0.48f, stiffness = 420f))
             }
             try {
-                do {
+                var pressed = true
+                while (pressed) {
                     val event = awaitPointerEvent(PointerEventPass.Initial)
-                    val change = event.changes.firstOrNull { it.id == down.id }
-                } while (change != null && change.pressed)
+                    pressed = event.changes.firstOrNull { it.id == down.id }?.pressed == true
+                }
             } finally {
                 animationScope.launch {
                     pressProgress.animateTo(0f, spring(dampingRatio = 0.48f, stiffness = 420f))
