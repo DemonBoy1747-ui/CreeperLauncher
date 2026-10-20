@@ -43,6 +43,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -260,6 +261,7 @@ fun IconButton(
     enabled: Boolean = true,
     colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
     interactionSource: MutableInteractionSource? = null,
+    shape: Shape = CircleShape,
     content: @Composable () -> Unit
 ) {
     val glass = liquidGlassBackdrop() != null
@@ -269,6 +271,7 @@ fun IconButton(
         enabled = enabled,
         colors = if (glass) {
             IconButtonDefaults.iconButtonColors(
+                containerColor = colors.containerColor,
                 contentColor = Color.White,
                 disabledContentColor = Color.White.copy(alpha = DISABLED_ALPHA)
             )
@@ -276,6 +279,7 @@ fun IconButton(
             colors
         },
         interactionSource = interactionSource,
+        shape = shape,
         content = content
     )
 }
