@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.components
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -531,8 +532,8 @@ fun GlassRailItemBody(
 ) {
     androidx.compose.foundation.layout.Column(
         modifier = modifier
-            .androidx_fillMaxWidth()
-            .androidx_padding(vertical = 12.dp, horizontal = 8.dp),
+            .fillMaxWidth()
+            .padding(vertical = 12.dp, horizontal = 8.dp),
         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
     ) {
@@ -544,7 +545,3 @@ fun GlassRailItemBody(
         }
     }
 }
-
-private fun Modifier.androidx_fillMaxWidth() = this.then(androidx.compose.foundation.layout.fillMaxWidth())
-private fun Modifier.androidx_padding(vertical: androidx.compose.ui.unit.Dp, horizontal: androidx.compose.ui.unit.Dp) =
-    this.then(androidx.compose.foundation.layout.padding(horizontal = horizontal, vertical = vertical))
