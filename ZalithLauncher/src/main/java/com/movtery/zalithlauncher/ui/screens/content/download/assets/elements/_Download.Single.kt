@@ -287,8 +287,14 @@ private fun DownloadDialog(
                         .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
                         .wrapContentHeight(),
                     shape = MaterialTheme.shapes.extraLarge,
-                    color = cardColor(false),
-                    contentColor = onCardColor(),
+                    // Dialogs live in their own window, so use the same translucent fill as the
+                    // other dialogs (see Dialogs.kt) instead of a real glass layer.
+                    color = if (liquidGlassBackdrop() != null) {
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.42f)
+                    } else {
+                        cardColor(false)
+                    },
+                    contentColor = if (liquidGlassBackdrop() != null) Color.White else onCardColor(),
                     shadowElevation = 6.dp
                 ) {
                     Column(
