@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.components
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -72,7 +73,7 @@ private const val DISABLED_ALPHA = 0.38f
 
 /** Glass tint for a button, given its Material colors. White instead of the primary color. */
 @Composable
-private fun glassButtonTint(colors: ButtonColors, enabled: Boolean, tonal: Boolean): Color {
+internal fun glassButtonTint(colors: ButtonColors, enabled: Boolean, tonal: Boolean): Color {
     val container = if (enabled) colors.containerColor else colors.disabledContainerColor
     val error = MaterialTheme.colorScheme.error
     return when {
@@ -533,14 +534,18 @@ fun GlassRailItemBody(
     androidx.compose.foundation.layout.Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp, horizontal = 8.dp),
+            .defaultMinSize(minWidth = 80.dp, minHeight = 80.dp)
+            .padding(top = 12.dp, bottom = 16.dp, start = 8.dp, end = 8.dp),
         horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp, androidx.compose.ui.Alignment.CenterVertically)
     ) {
         androidx.compose.runtime.CompositionLocalProvider(
             androidx.compose.material3.LocalContentColor provides Color.White
         ) {
-            icon()
+            Box(
+                modifier = Modifier.size(width = 56.dp, height = 32.dp),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) { icon() }
             label()
         }
     }
