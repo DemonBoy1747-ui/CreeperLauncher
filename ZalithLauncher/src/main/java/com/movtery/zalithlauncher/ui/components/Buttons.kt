@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.components
 
+import com.movtery.zalithlauncher.ui.theme.cardColor
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.basicMarquee
@@ -108,7 +109,7 @@ fun ScalingActionButton(
             modifier = modifier.then(
                 if (enabled) Modifier.liquidGlassPressAnimation() else Modifier
             ),
-            containerColor = glassButtonTint(colors, enabled, tonal = false),
+            containerColor = scalingGlassTint(colors, enabled),
             contentColor = Color.White,
             onClick = if (enabled) onClick else null
         ) {
@@ -397,4 +398,12 @@ fun TooltipIconButton(
             content()
         }
     }
+}
+
+/** Glass tint shared by all [ScalingActionButton]s: the same card color list items use; errors stay red. */
+@Composable
+private fun scalingGlassTint(colors: ButtonColors, enabled: Boolean): Color {
+    val container = if (enabled) colors.containerColor else colors.disabledContainerColor
+    val scheme = MaterialTheme.colorScheme
+    return if (container == scheme.error || container == scheme.errorContainer) container else cardColor()
 }

@@ -472,29 +472,16 @@ private fun VersionsContent(
             .padding(PaddingValues(horizontal = 12.dp))
             .padding(bottom = 8.dp)
         if (glassBackdrop != null) {
-            LiquidGlassSurface(
-                backdrop = glassBackdrop,
-                shape = ButtonDefaults.shape,
+            ScalingActionButton(
                 modifier = launchButtonModifier,
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
-                contentColor = Color.White,
-                blurRadius = 10.dp
-            ) {
-                ScalingActionButton(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Transparent,
-                        contentColor = Color.White
-                    ),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
-                    onClick = { onLaunchGame(null) },
-                    content = {
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            MarqueeText(text = stringResource(R.string.main_launch_game))
-                        }
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                onClick = { onLaunchGame(null) },
+                content = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        MarqueeText(text = stringResource(R.string.main_launch_game))
                     }
-                )
-            }
+                }
+            )
         } else {
             ScalingActionButton(
                 modifier = launchButtonModifier,
