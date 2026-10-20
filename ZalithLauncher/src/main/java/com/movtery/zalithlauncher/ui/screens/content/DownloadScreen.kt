@@ -56,6 +56,7 @@ import com.movtery.zalithlauncher.game.download.assets.favorites.FavoriteProject
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.GlassRailItemBody
 import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
@@ -211,14 +212,23 @@ private fun TabMenu(
             val categorySelected = backScreenViewModel.downloadScreen.currentKey == item.key
             val selectCategory = { backStack.navigateOnce(item.key) }
             val categoryContent: @Composable () -> Unit = {
+                if (glassBackdrop != null) {
+                    GlassRailItemBody(
+                        icon = { item.icon() },
+                        label = {
+                            Text(
+                                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                                text = stringResource(item.textRes),
+                                maxLines = 1,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    )
+                } else {
                 NavigationRailItem(
                     selected = categorySelected,
                     onClick = selectCategory,
-                    colors = if (glassBackdrop != null) {
-                        NavigationRailItemDefaults.colors(indicatorColor = Color.Transparent)
-                    } else {
-                        NavigationRailItemDefaults.colors()
-                    },
+                    colors = NavigationRailItemDefaults.colors(),
                     icon = {
                         item.icon()
                     },
@@ -231,6 +241,7 @@ private fun TabMenu(
                         )
                     }
                 )
+                }
             }
             if (glassBackdrop != null) {
                 LiquidGlassSurface(

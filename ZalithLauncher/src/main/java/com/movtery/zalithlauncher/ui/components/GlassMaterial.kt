@@ -517,3 +517,34 @@ fun AlertDialog(
         )
     }
 }
+
+/**
+ * Icon + label body of a glass navigation-rail entry. It has no click handling or ripple of its
+ * own: the enclosing [LiquidGlassSurface] owns the tap and its springy press, so there is no
+ * stray white indicator drawn over the icon.
+ */
+@Composable
+fun GlassRailItemBody(
+    icon: @Composable () -> Unit,
+    label: @Composable () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.foundation.layout.Column(
+        modifier = modifier
+            .androidx_fillMaxWidth()
+            .androidx_padding(vertical = 12.dp, horizontal = 8.dp),
+        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
+    ) {
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.material3.LocalContentColor provides Color.White
+        ) {
+            icon()
+            label()
+        }
+    }
+}
+
+private fun Modifier.androidx_fillMaxWidth() = this.then(androidx.compose.foundation.layout.fillMaxWidth())
+private fun Modifier.androidx_padding(vertical: androidx.compose.ui.unit.Dp, horizontal: androidx.compose.ui.unit.Dp) =
+    this.then(androidx.compose.foundation.layout.padding(horizontal = horizontal, vertical = vertical))

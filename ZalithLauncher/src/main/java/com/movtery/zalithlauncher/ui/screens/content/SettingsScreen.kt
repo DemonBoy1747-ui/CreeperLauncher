@@ -52,6 +52,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.GlassRailItemBody
 import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
 import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.fadeEdge
@@ -163,33 +164,22 @@ private fun TabMenu(
                 LiquidGlassSurface(
                     backdrop = glassBackdrop,
                     shape = MaterialTheme.shapes.large,
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    blurRadius = 8.dp
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = if (settingsScreenKey == item.key) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f) else MaterialTheme.colorScheme.surface,
+                    blurRadius = 8.dp,
+                    onClick = { navigateTo(item.key) }
                 ) {
-                NavigationRailItem(
-                    colors = NavigationRailItemDefaults.colors(
-                        indicatorColor = if (glassBackdrop != null) Color.Transparent else MaterialTheme.colorScheme.secondaryContainer,
-                        selectedIconColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSecondaryContainer,
-                        selectedTextColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSecondaryContainer,
-                        unselectedIconColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                        unselectedTextColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
-                    ),
-                    selected = settingsScreenKey == item.key,
-                    onClick = {
-                        navigateTo(item.key)
-                    },
-                    icon = {
-                        item.icon()
-                    },
-                    label = {
-                        Text(
-                            modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                            text = stringResource(item.textRes),
-                            maxLines = 1,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                )
+                    GlassRailItemBody(
+                        icon = { item.icon() },
+                        label = {
+                            Text(
+                                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                                text = stringResource(item.textRes),
+                                maxLines = 1,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    )
                 }
             } else {
                 NavigationRailItem(
