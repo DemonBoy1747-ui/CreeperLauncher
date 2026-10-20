@@ -349,12 +349,15 @@ private fun VersionManagementLayout(
                 style = MaterialTheme.typography.labelLarge
             )
 
-            FlowRow {
+            FlowRow(
+                modifier = Modifier.padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 OutlinedButton(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = onEditSummary
                 ) {
                     Text(
@@ -365,7 +368,6 @@ private fun VersionManagementLayout(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = onRename
                 ) {
                     Text(
@@ -376,7 +378,6 @@ private fun VersionManagementLayout(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = onExport
                 ) {
                     Text(
@@ -387,7 +388,6 @@ private fun VersionManagementLayout(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     enabled = logExists,
                     onClick = {
                         onShareLog(logFile)
@@ -435,12 +435,15 @@ private fun VersionQuickActions(
                 style = MaterialTheme.typography.labelLarge
             )
 
-            FlowRow {
+            FlowRow(
+                modifier = Modifier.padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 OutlinedButton(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder("") }
                 ) {
                     Text(
@@ -451,7 +454,6 @@ private fun VersionQuickActions(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder(VersionFolders.SAVES.folderName) }
                 ) {
                     Text(
@@ -462,7 +464,6 @@ private fun VersionQuickActions(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder(VersionFolders.RESOURCE_PACK.folderName) }
                 ) {
                     Text(
@@ -473,7 +474,6 @@ private fun VersionQuickActions(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder(VersionFolders.SHADERS.folderName) }
                 ) {
                     Text(
@@ -484,7 +484,6 @@ private fun VersionQuickActions(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder(VersionFolders.MOD.folderName) }
                 ) {
                     Text(
@@ -495,7 +494,6 @@ private fun VersionQuickActions(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder("screenshots") }
                 ) {
                     Text(
@@ -506,7 +504,6 @@ private fun VersionQuickActions(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder("logs") }
                 ) {
                     Text(
@@ -517,7 +514,6 @@ private fun VersionQuickActions(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = if (AllSettings.launcherLiquidGlass.state) Color.White else MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.padding(end = 12.dp),
                     onClick = { accessFolder("crash-reports") }
                 ) {
                     Text(

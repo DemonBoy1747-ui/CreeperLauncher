@@ -20,7 +20,7 @@ package com.movtery.zalithlauncher.ui.screens.main.crashlogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
+import com.movtery.zalithlauncher.ui.components.AlertDialog
 import com.movtery.zalithlauncher.ui.components.FilledTonalButton
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme

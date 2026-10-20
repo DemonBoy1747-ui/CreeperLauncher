@@ -37,7 +37,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
+import com.movtery.zalithlauncher.ui.components.AlertDialog
 import com.movtery.zalithlauncher.ui.components.Button
 import androidx.compose.material3.Checkbox
 import com.movtery.zalithlauncher.ui.components.FilledTonalButton

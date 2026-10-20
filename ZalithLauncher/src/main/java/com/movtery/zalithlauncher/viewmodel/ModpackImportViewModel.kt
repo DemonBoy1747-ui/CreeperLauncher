@@ -25,7 +25,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.AlertDialog
+import com.movtery.zalithlauncher.ui.components.AlertDialog
 import com.movtery.zalithlauncher.ui.components.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

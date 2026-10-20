@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,6 +29,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonElevation
@@ -49,6 +51,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.unit.dp
 
 /*
@@ -434,6 +438,82 @@ fun Card(
             border = border,
             interactionSource = interactionSource,
             content = content
+        )
+    }
+}
+
+/**
+ * Drop-in for Material3 AlertDialog. With Liquid Glass on, the dialog card is a glass box
+ * (white text); otherwise it delegates to Material3 unchanged.
+ */
+@Composable
+fun AlertDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    dismissButton: @Composable (() -> Unit)? = null,
+    icon: @Composable (() -> Unit)? = null,
+    title: @Composable (() -> Unit)? = null,
+    text: @Composable (() -> Unit)? = null,
+    shape: Shape = AlertDialogDefaults.shape,
+    containerColor: Color = AlertDialogDefaults.containerColor,
+    iconContentColor: Color = AlertDialogDefaults.iconContentColor,
+    titleContentColor: Color = AlertDialogDefaults.titleContentColor,
+    textContentColor: Color = AlertDialogDefaults.textContentColor,
+    tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
+    properties: DialogProperties = DialogProperties()
+) {
+    val backdrop = liquidGlassBackdrop()
+    if (backdrop != null) {
+        Dialog(onDismissRequest = onDismissRequest, properties = properties) {
+            LiquidGlassSurface(
+                backdrop = backdrop,
+                shape = shape,
+                modifier = modifier,
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = Color.White
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    icon?.let {
+                        Box(modifier = Modifier.align(Alignment.CenterHorizontally)) { it() }
+                    }
+                    title?.let {
+                        ProvideTextStyle(MaterialTheme.typography.headlineSmall) { it() }
+                    }
+                    text?.let {
+                        ProvideTextStyle(MaterialTheme.typography.bodyMedium) {
+                            Box(modifier = Modifier.weight(1f, fill = false)) { it() }
+                        }
+                    }
+                    Row(
+                        modifier = Modifier.align(Alignment.End),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        dismissButton?.invoke()
+                        confirmButton()
+                    }
+                }
+            }
+        }
+    } else {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = onDismissRequest,
+            confirmButton = confirmButton,
+            modifier = modifier,
+            dismissButton = dismissButton,
+            icon = icon,
+            title = title,
+            text = text,
+            shape = shape,
+            containerColor = containerColor,
+            iconContentColor = iconContentColor,
+            titleContentColor = titleContentColor,
+            textContentColor = textContentColor,
+            tonalElevation = tonalElevation,
+            properties = properties
         )
     }
 }
