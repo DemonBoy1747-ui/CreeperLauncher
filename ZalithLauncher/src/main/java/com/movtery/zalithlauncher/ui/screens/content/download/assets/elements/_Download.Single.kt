@@ -62,6 +62,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CheckboxDefaults
+import com.movtery.zalithlauncher.ui.components.GlassItemSurface
+import com.movtery.zalithlauncher.ui.components.ScalingActionButton
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalContext
@@ -374,41 +379,70 @@ private fun DownloadDialog(
                             }
                         }
 
+                        val doInstall: () -> Unit = {
+                            if (selectedVersions.isNotEmpty()) {
+                                onInstall(
+                                    selectedVersions,
+                                    dependencyEntries.mapNotNull { entry ->
+                                        val project = entry.project ?: return@mapNotNull null
+                                        if (entry.dependency.cacheKey() !in selectedDependencyKeys) {
+                                            return@mapNotNull null
+                                        }
+                                        DependencyRequest(
+                                            platform = entry.dependency.platform,
+                                            projectId = project.platformId(),
+                                            versionId = entry.dependency.versionId,
+                                            classes = project.platformClasses(classes),
+                                            projectTitle = project.platformTitle()
+                                        )
+                                    }
+                                )
+                            }
+                        }
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            FilledTonalButton(
-                                modifier = Modifier.weight(0.5f),
-                                onClick = onDismiss
-                            ) {
-                                MarqueeText(text = stringResource(R.string.generic_cancel))
-                            }
-                            Button(
-                                modifier = Modifier.weight(0.5f),
-                                enabled = selectedVersions.isNotEmpty(),
-                                onClick = {
-                                    if (selectedVersions.isNotEmpty()) {
-                                        onInstall(
-                                            selectedVersions,
-                                            dependencyEntries.mapNotNull { entry ->
-                                                val project = entry.project ?: return@mapNotNull null
-                                                if (entry.dependency.cacheKey() !in selectedDependencyKeys) {
-                                                    return@mapNotNull null
-                                                }
-                                                DependencyRequest(
-                                                    platform = entry.dependency.platform,
-                                                    projectId = project.platformId(),
-                                                    versionId = entry.dependency.versionId,
-                                                    classes = project.platformClasses(classes),
-                                                    projectTitle = project.platformTitle()
-                                                )
-                                            }
-                                        )
-                                    }
+                            if (liquidGlassBackdrop() != null) {
+                                // Glass buttons: neutral card tint for Cancel, primary tint for Install
+                                ScalingActionButton(
+                                    modifier = Modifier.weight(0.5f),
+                                    onClick = onDismiss,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = cardColor(false),
+                                        contentColor = Color.White
+                                    )
+                                ) {
+                                    MarqueeText(text = stringResource(R.string.generic_cancel))
                                 }
-                            ) {
-                                MarqueeText(text = stringResource(R.string.download_install))
+                                ScalingActionButton(
+                                    modifier = Modifier.weight(0.5f),
+                                    enabled = selectedVersions.isNotEmpty(),
+                                    onClick = doInstall,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = Color.White,
+                                        disabledContainerColor = cardColor(false),
+                                        disabledContentColor = Color.White.copy(alpha = 0.5f)
+                                    )
+                                ) {
+                                    MarqueeText(text = stringResource(R.string.download_install))
+                                }
+                            } else {
+                                FilledTonalButton(
+                                    modifier = Modifier.weight(0.5f),
+                                    onClick = onDismiss
+                                ) {
+                                    MarqueeText(text = stringResource(R.string.generic_cancel))
+                                }
+                                Button(
+                                    modifier = Modifier.weight(0.5f),
+                                    enabled = selectedVersions.isNotEmpty(),
+                                    onClick = doInstall
+                                ) {
+                                    MarqueeText(text = stringResource(R.string.download_install))
+                                }
                             }
                         }
                     }
@@ -465,11 +499,13 @@ private fun SelectVersionListItem(
     color: Color = itemColor(false),
     contentColor: Color = onItemColor(),
 ) {
-    Surface(
+    val glassItem = liquidGlassBackdrop() != null
+    // Each version choice is its own Liquid Glass box (same recipe as the mod list entries)
+    GlassItemSurface(
         modifier = modifier,
         shape = shape,
-        color = color,
-        contentColor = contentColor,
+        color = if (glassItem) cardColor(false) else color,
+        contentColor = if (glassItem) Color.White else contentColor,
         onClick = {
             if (checked) {
                 onCancel()
@@ -483,6 +519,15 @@ private fun SelectVersionListItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
+                colors = if (glassItem) {
+                    CheckboxDefaults.colors(
+                        checkedColor = Color.White,
+                        uncheckedColor = Color.White,
+                        checkmarkColor = Color.Black.copy(alpha = 0.7f)
+                    )
+                } else {
+                    CheckboxDefaults.colors()
+                },
                 checked = checked,
                 onCheckedChange = {
                     if (it) {
@@ -581,7 +626,7 @@ private fun AssetsUnavailableDependencyItem(
     color: Color = itemColor(false),
     contentColor: Color = onItemColor(),
 ) {
-    Surface(
+    GlassItemSurface(
         modifier = modifier,
         shape = shape,
         color = color,
@@ -654,7 +699,7 @@ private fun AssetsVersionDependencyItem(
     val modLoaders = remember { project.platformModLoaders() }
     val classes = remember { project.platformClasses(defaultClasses) }
 
-    Surface(
+    GlassItemSurface(
         modifier = modifier,
         onClick = onClick,
         shape = shape,
