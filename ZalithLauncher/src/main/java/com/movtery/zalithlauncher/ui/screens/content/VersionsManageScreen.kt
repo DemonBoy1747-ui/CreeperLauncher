@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.inset
@@ -103,6 +104,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.VersionItemLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionsOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.canHandlePermission
@@ -411,11 +413,23 @@ private fun LeftMenu(
             }
         }
 
+        val glassButtonColors = if (liquidGlassBackdrop() != null) {
+            ButtonDefaults.buttonColors(
+                containerColor = cardColor(),
+                contentColor = Color.White,
+                disabledContainerColor = cardColor(),
+                disabledContentColor = Color.White.copy(alpha = 0.5f)
+            )
+        } else {
+            ButtonDefaults.buttonColors()
+        }
+
         ScalingActionButton(
             modifier = Modifier
                 .padding(start = 12.dp)
                 .padding(top = 8.dp)
                 .fillMaxWidth(),
+            colors = glassButtonColors,
             onClick = {
                 (context as? MainActivity)?.let { activity ->
                     checkStoragePermissions(
@@ -437,6 +451,7 @@ private fun LeftMenu(
             modifier = Modifier
                 .padding(start = 12.dp, top = 8.dp, bottom = 12.dp)
                 .fillMaxWidth(),
+            colors = glassButtonColors,
             onClick = onCleanupGameFiles
         ) {
             MarqueeText(text = stringResource(R.string.versions_manage_cleanup))

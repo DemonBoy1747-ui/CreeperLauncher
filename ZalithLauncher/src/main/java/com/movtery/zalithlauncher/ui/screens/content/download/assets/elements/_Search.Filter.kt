@@ -67,6 +67,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.foundation.layout.Box
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalFocusManager
@@ -110,18 +113,24 @@ import com.movtery.zalithlauncher.utils.animation.getAnimateTween
  * @param extraFilter 额外的过滤器UI
  */
 @OptIn(ExperimentalMaterial3Api::class)
+/** True while inside a [DownloadFilterGlass] box, so inner filter layouts don't add a second glass. */
+private val LocalInsideGlassFilter = compositionLocalOf { false }
+
 @Composable
 private fun DownloadFilterGlass(content: @Composable () -> Unit) {
     val backdrop = liquidGlassBackdrop()
     if (backdrop != null) {
+        // Same glass as the entries in the result list: default blur, card tint, white text
         LiquidGlassSurface(
             backdrop = backdrop,
             shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.surface,
-            blurRadius = 10.dp
+            containerColor = cardColor(),
+            contentColor = Color.White
         ) {
-            content()
+            CompositionLocalProvider(LocalInsideGlassFilter provides true) {
+                content()
+            }
         }
     } else {
         content()
@@ -417,6 +426,7 @@ fun BaseFilterLayout(
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
     blur: Int = AllSettings.backgroundBlur.state,
+    glassBlur: Dp = 10.dp,
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
@@ -428,14 +438,19 @@ fun BaseFilterLayout(
     }
 
     val glassBackdrop = liquidGlassBackdrop()
-    if (glassBackdrop != null) {
+    if (glassBackdrop != null && LocalInsideGlassFilter.current) {
+        // Already inside a filter glass box: no second glass layer
+        Box(modifier = if (onClick != null) modifier.clickable(onClick = onClick) else modifier) {
+            Content(glass = true)
+        }
+    } else if (glassBackdrop != null) {
         LiquidGlassSurface(
             backdrop = glassBackdrop,
             shape = shape,
             modifier = modifier,
             containerColor = color,
             contentColor = Color.White,
-            blurRadius = 10.dp,
+            blurRadius = glassBlur,
             onClick = onClick
         ) {
             Content(glass = true)
