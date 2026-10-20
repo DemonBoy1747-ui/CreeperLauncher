@@ -103,6 +103,7 @@ import com.movtery.zalithlauncher.ui.control.input.HidableInputLayout
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderLayer
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderOperation
+import com.movtery.zalithlauncher.ui.components.GameGlassBackdrop
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.utils.computeGameDisplayLayout
@@ -473,8 +474,9 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         }
 
         setContent {
-            ZalithLauncherTheme {
+            ZalithLauncherTheme(forceGlassLayer = true) {
                 ObserveFullScreenSetting(AllSettings.gameFullScreen.state)
+                GameGlassBackdrop(modifier = Modifier.fillMaxSize())
                 Screen {
                     withHandler {
                         ComposableLayout(vmViewModel.textInputMode)

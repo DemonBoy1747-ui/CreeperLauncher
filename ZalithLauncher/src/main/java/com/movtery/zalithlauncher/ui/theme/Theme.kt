@@ -608,6 +608,8 @@ fun ZalithLauncherTheme(
     dynamicColor: Boolean = true,
     backgroundViewModel: BackgroundViewModel? = null,
     festivals: List<Festival> = emptyList(),
+    //In game there is no launcher background; provide a glass layer anyway (see GameGlassBackdrop)
+    forceGlassLayer: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorTheme = AllSettings.launcherColorTheme.state
@@ -679,7 +681,7 @@ fun ZalithLauncherTheme(
     val glassLayer = rememberPrismalGlassLayer()
     val activeGlassLayer = glassLayer.takeIf {
         AllSettings.launcherLiquidGlass.state &&
-                backgroundViewModel?.isValid == true
+                (backgroundViewModel?.isValid == true || forceGlassLayer)
     }
 
     CompositionLocalProvider(

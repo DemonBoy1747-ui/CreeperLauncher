@@ -18,6 +18,8 @@
 
 package com.movtery.zalithlauncher.ui.components
 
+import androidx.compose.foundation.background
+import com.styropyr0.prismal.sources.prismalGlassLayer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.LocalContentColor
@@ -259,6 +261,27 @@ fun GlassItemSurface(
             color = color,
             contentColor = contentColor,
             content = content
+        )
+    }
+}
+
+/**
+ * Backdrop for screens that have no launcher background (the in-game UI). Records a flat dark
+ * surface into the shared glass layer, so glass boxes still render blur, edge highlights and the
+ * springy press. It is drawn at (almost) zero alpha, so it never visibly covers the game.
+ */
+@Composable
+fun GameGlassBackdrop(modifier: Modifier = Modifier) {
+    val layer = LocalLiquidGlassBackdrop.current ?: return
+    Box(
+        modifier = modifier
+            .graphicsLayer { alpha = 0.004f }
+            .prismalGlassLayer(layer)
+    ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Color(0xFF3A3F47))
         )
     }
 }
