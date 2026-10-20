@@ -114,7 +114,7 @@ import com.movtery.zalithlauncher.utils.animation.getAnimateTween
  */
 @OptIn(ExperimentalMaterial3Api::class)
 /** True while inside a [DownloadFilterGlass] box, so inner filter layouts don't add a second glass. */
-private val LocalInsideGlassFilter = compositionLocalOf { false }
+internal val LocalInsideGlassFilter = compositionLocalOf { false }
 
 @Composable
 private fun DownloadFilterGlass(content: @Composable () -> Unit) {

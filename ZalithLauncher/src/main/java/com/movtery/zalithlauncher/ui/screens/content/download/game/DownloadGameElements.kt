@@ -58,6 +58,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.foundation.layout.RowScope
+import com.movtery.zalithlauncher.ui.components.GlassItemSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
@@ -412,12 +415,7 @@ fun AddonListItem(
     summary: (@Composable () -> Unit)? = null,
     onClick: () -> Unit = {}
 ) {
-    Row(
-        modifier = modifier
-            .clip(shape = MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    val itemContent: @Composable RowScope.() -> Unit = {
         RadioButton(
             colors = glassRadioColors(),
             selected = selected,
@@ -432,6 +430,31 @@ fun AddonListItem(
             )
             summary?.invoke()
         }
+    }
+
+    if (liquidGlassBackdrop() != null) {
+        // Each loader/addon version choice is its own Liquid Glass box
+        GlassItemSurface(
+            modifier = modifier,
+            shape = MaterialTheme.shapes.large,
+            color = cardColor(),
+            contentColor = onCardColor(),
+            onClick = onClick
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                content = itemContent
+            )
+        }
+    } else {
+        Row(
+            modifier = modifier
+                .clip(shape = MaterialTheme.shapes.medium)
+                .clickable(onClick = onClick),
+            verticalAlignment = Alignment.CenterVertically,
+            content = itemContent
+        )
     }
 }
 

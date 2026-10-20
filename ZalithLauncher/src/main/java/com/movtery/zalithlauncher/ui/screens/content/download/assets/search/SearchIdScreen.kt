@@ -50,6 +50,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.runtime.CompositionLocalProvider
+import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.LocalInsideGlassFilter
+import com.movtery.zalithlauncher.ui.theme.cardColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
@@ -483,10 +486,12 @@ private fun SearchIdGlass(content: @Composable () -> Unit) {
             backdrop = backdrop,
             shape = MaterialTheme.shapes.large,
             modifier = Modifier.fillMaxWidth(),
-            containerColor = MaterialTheme.colorScheme.surface,
-            blurRadius = 10.dp
+            containerColor = cardColor(),
+            contentColor = Color.White
         ) {
-            content()
+            CompositionLocalProvider(LocalInsideGlassFilter provides true) {
+                content()
+            }
         }
     } else {
         content()
