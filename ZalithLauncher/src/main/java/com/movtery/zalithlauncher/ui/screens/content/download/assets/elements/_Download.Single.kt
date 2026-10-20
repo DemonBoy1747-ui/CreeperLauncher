@@ -65,6 +65,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CheckboxDefaults
 import com.movtery.zalithlauncher.ui.components.GlassItemSurface
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import androidx.compose.ui.graphics.Color
@@ -281,21 +282,11 @@ private fun DownloadDialog(
                     .fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
-                Surface(
+                DialogCardSurface(
                     modifier = Modifier
                         .padding(all = 6.dp)
                         .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
-                        .wrapContentHeight(),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    // Dialogs live in their own window, so use the same translucent fill as the
-                    // other dialogs (see Dialogs.kt) instead of a real glass layer.
-                    color = if (liquidGlassBackdrop() != null) {
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.42f)
-                    } else {
-                        cardColor(false)
-                    },
-                    contentColor = if (liquidGlassBackdrop() != null) Color.White else onCardColor(),
-                    shadowElevation = 6.dp
+                        .wrapContentHeight()
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -455,6 +446,38 @@ private fun DownloadDialog(
                 }
             }
         }
+    }
+}
+
+/**
+ * Outer card of the install dialog. Same recipe as the wrapper card of the Controls layout
+ * list: a Liquid Glass card (card tint, white text) holding glass boxes of its own.
+ */
+@Composable
+private fun DialogCardSurface(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val backdrop = liquidGlassBackdrop()
+    if (backdrop != null) {
+        LiquidGlassSurface(
+            backdrop = backdrop,
+            shape = MaterialTheme.shapes.extraLarge,
+            modifier = modifier,
+            containerColor = cardColor(),
+            contentColor = Color.White
+        ) {
+            content()
+        }
+    } else {
+        Surface(
+            modifier = modifier,
+            shape = MaterialTheme.shapes.extraLarge,
+            color = cardColor(false),
+            contentColor = onCardColor(),
+            shadowElevation = 6.dp,
+            content = content
+        )
     }
 }
 
