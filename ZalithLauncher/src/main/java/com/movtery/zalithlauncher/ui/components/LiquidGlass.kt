@@ -115,6 +115,16 @@ fun Modifier.glassPageCapture(): Modifier {
 }
 
 /**
+ * True while a [GlassDialog] is open and the launcher page is being recorded into a glass layer.
+ *
+ * Native views (WebView, etc.) must not be drawn into that recording: their draw is not a plain
+ * display list and crashes when it is replayed a second time or from the dialog's window.
+ * Composables hosting such a view should hide it while this is true.
+ */
+@Composable
+fun isGlassPageRecording(): Boolean = (LocalLiquidGlassPage.current?.openDialogs ?: 0) > 0
+
+/**
  * A dialog is its own Android window with its own coordinate space, so Prismal's
  * `layerCoordinates.localPositionOf(glass)` cannot relate the glass to the recorded layer and falls
  * back to a window-relative offset of about (0, 0): the glass then shows the top-left of the layer.
