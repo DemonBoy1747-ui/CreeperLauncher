@@ -53,7 +53,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.unit.dp
 
@@ -85,7 +84,7 @@ internal fun glassButtonTint(colors: ButtonColors, enabled: Boolean, tonal: Bool
 
 @Composable
 private fun GlassButtonBody(
-    backdrop: com.styropyr0.prismal.sources.PrismalGlassLayer,
+    backdrop: com.styropyr0.prismal.PrismalBackdrop,
     onClick: () -> Unit,
     modifier: Modifier,
     enabled: Boolean,
@@ -467,9 +466,10 @@ fun AlertDialog(
 ) {
     val backdrop = liquidGlassBackdrop()
     if (backdrop != null) {
-        Dialog(onDismissRequest = onDismissRequest, properties = properties) {
+        GlassDialog(onDismissRequest = onDismissRequest, properties = properties) {
+            //Re-read inside the dialog window: GlassDialog provides a window-corrected sampler here
             LiquidGlassSurface(
-                backdrop = backdrop,
+                backdrop = liquidGlassBackdrop() ?: backdrop,
                 shape = shape,
                 modifier = modifier,
                 containerColor = MaterialTheme.colorScheme.surface,

@@ -41,9 +41,26 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.GraphicsLayerScope
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import com.styropyr0.prismal.PrismalBackdrop
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.AllSettings
@@ -59,6 +76,109 @@ import kotlinx.coroutines.launch
  */
 val LocalLiquidGlassBackdrop = staticCompositionLocalOf<PrismalGlassLayer?> { null }
 
+/**
+ * What glass surfaces actually sample. Normally this is [LocalLiquidGlassBackdrop] itself; inside a
+ * dialog window [GlassDialog] swaps in a window-corrected sampler (see [DialogWindowBackdrop]).
+ */
+val LocalLiquidGlassSampler = staticCompositionLocalOf<PrismalBackdrop?> { null }
+
+/**
+ * Records the whole launcher page (wallpaper + screen UI) so dialogs can blur what is really behind
+ * them, not only the wallpaper. Recording is only switched on while a dialog is open
+ * ([openDialogs] > 0), because it draws the page content a second time.
+ */
+@Stable
+class GlassPageCapture(val layer: PrismalGlassLayer) {
+    /** Number of [GlassDialog]s currently shown. */
+    var openDialogs by mutableIntStateOf(0)
+
+    /** Screen position of the captured page's top-left corner. */
+    var originOnScreen by mutableStateOf(Offset.Zero)
+}
+
+/** Provided by the theme in activities that show a launcher page. Null elsewhere. */
+val LocalLiquidGlassPage = staticCompositionLocalOf<GlassPageCapture?> { null }
+
+/**
+ * Put on the container that holds the wallpaper and the screen content. Remembers where the page is
+ * on screen and, while a dialog is open, records the page into [GlassPageCapture.layer].
+ */
+@Composable
+fun Modifier.glassPageCapture(): Modifier {
+    val page = LocalLiquidGlassPage.current ?: return this
+    val recording = page.openDialogs > 0
+    return this
+        .onGloballyPositioned { coordinates ->
+            if (coordinates.isAttached) page.originOnScreen = coordinates.localToScreen(Offset.Zero)
+        }
+        .then(if (recording) Modifier.prismalGlassLayer(page.layer) else Modifier)
+}
+
+/**
+ * A dialog is its own Android window with its own coordinate space, so Prismal's
+ * `layerCoordinates.localPositionOf(glass)` cannot relate the glass to the recorded layer and falls
+ * back to a window-relative offset of about (0, 0): the glass then shows the top-left of the layer.
+ * This sampler measures the glass on screen instead and subtracts the layer's screen origin.
+ */
+@Stable
+private class DialogWindowBackdrop(
+    private val source: PrismalGlassLayer,
+    private val page: GlassPageCapture?
+) : PrismalBackdrop {
+
+    override val isCoordinatesDependent: Boolean = true
+
+    override fun readSamplingState() {
+        source.readSamplingState()
+        page?.originOnScreen
+    }
+
+    override fun DrawScope.drawPrismalGlass(
+        density: Density,
+        coordinates: LayoutCoordinates?,
+        layerBlock: (GraphicsLayerScope.() -> Unit)?
+    ) {
+        val glass = coordinates ?: return
+        if (!glass.isAttached) return
+        val offset = glass.localToScreen(Offset.Zero) - (page?.originOnScreen ?: Offset.Zero)
+        withTransform({ translate(-offset.x, -offset.y) }) {
+            drawLayer(source.graphicsLayer)
+        }
+    }
+}
+
+/**
+ * Drop-in for [Dialog]. With Liquid Glass on, glass inside the dialog samples the launcher page
+ * behind the dialog at the correct position instead of the top-left of the wallpaper.
+ */
+@Composable
+fun GlassDialog(
+    onDismissRequest: () -> Unit,
+    properties: DialogProperties = DialogProperties(),
+    content: @Composable () -> Unit
+) {
+    val record = LocalLiquidGlassBackdrop.current
+    if (record == null || !AllSettings.launcherLiquidGlass.state) {
+        Dialog(onDismissRequest = onDismissRequest, properties = properties, content = content)
+        return
+    }
+
+    val page = LocalLiquidGlassPage.current
+    if (page != null) {
+        DisposableEffect(page) {
+            page.openDialogs++
+            onDispose { page.openDialogs-- }
+        }
+    }
+    val sampler = remember(record, page) { DialogWindowBackdrop(page?.layer ?: record, page) }
+
+    Dialog(onDismissRequest = onDismissRequest, properties = properties) {
+        CompositionLocalProvider(LocalLiquidGlassSampler provides sampler) {
+            content()
+        }
+    }
+}
+
 /** 容器色叠加在玻璃上的不透明度，保证文字可读 */
 private const val GLASS_SURFACE_ALPHA = 0.3f
 
@@ -66,9 +186,9 @@ private const val GLASS_SURFACE_ALPHA = 0.3f
  * 当前可用的 Liquid Glass 背景图层；为 null 表示应使用普通样式
  */
 @Composable
-fun liquidGlassBackdrop(): PrismalGlassLayer? {
+fun liquidGlassBackdrop(): PrismalBackdrop? {
     if (!AllSettings.launcherLiquidGlass.state) return null
-    return LocalLiquidGlassBackdrop.current
+    return LocalLiquidGlassSampler.current ?: LocalLiquidGlassBackdrop.current
 }
 
 /**
@@ -79,7 +199,7 @@ fun liquidGlassBackdrop(): PrismalGlassLayer? {
  */
 @Composable
 fun LiquidGlassSurface(
-    backdrop: PrismalGlassLayer,
+    backdrop: PrismalBackdrop,
     shape: Shape,
     modifier: Modifier = Modifier,
     containerColor: Color = Color.Unspecified,

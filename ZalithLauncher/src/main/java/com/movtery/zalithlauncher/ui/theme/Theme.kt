@@ -42,7 +42,9 @@ import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.ui.theme.components.activeMaskView
 import com.movtery.zalithlauncher.utils.festival.Festival
 import com.movtery.zalithlauncher.utils.festival.LocalFestivals
+import com.movtery.zalithlauncher.ui.components.GlassPageCapture
 import com.movtery.zalithlauncher.ui.components.LocalLiquidGlassBackdrop
+import com.movtery.zalithlauncher.ui.components.LocalLiquidGlassPage
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
 import com.styropyr0.prismal.sources.rememberPrismalGlassLayer
@@ -684,10 +686,16 @@ fun ZalithLauncherTheme(
                 (backgroundViewModel?.isValid == true || forceGlassLayer)
     }
 
+    //Second layer that records the whole page (wallpaper + UI) while a dialog is open
+    val pageLayer = rememberPrismalGlassLayer()
+    val pageCapture = remember(pageLayer) { GlassPageCapture(pageLayer) }
+    val activePageCapture = pageCapture.takeIf { activeGlassLayer != null }
+
     CompositionLocalProvider(
         LocalBackgroundViewModel provides backgroundViewModel,
         LocalFestivals provides festivals,
-        LocalLiquidGlassBackdrop provides activeGlassLayer
+        LocalLiquidGlassBackdrop provides activeGlassLayer,
+        LocalLiquidGlassPage provides activePageCapture
     ) {
         MaterialExpressiveTheme(
             colorScheme = currentDisplayScheme,
