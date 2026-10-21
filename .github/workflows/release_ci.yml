@@ -18,6 +18,10 @@ jobs:
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+      RAY_KEYSTORE_BASE64: ${{ secrets.RAY_KEYSTORE_BASE64 }}
+      RAY_STORE_PASSWORD: ${{ secrets.RAY_STORE_PASSWORD }}
+      RAY_KEY_PASSWORD: ${{ secrets.RAY_KEY_PASSWORD }}
+      RAY_KEY_ALIAS: ${{ secrets.RAY_KEY_ALIAS }}
 
   Upload-to-Release:
     needs: Build

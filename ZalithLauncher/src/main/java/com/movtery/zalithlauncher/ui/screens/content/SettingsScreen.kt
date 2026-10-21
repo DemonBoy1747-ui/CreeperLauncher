@@ -36,12 +36,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
@@ -50,6 +52,9 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.GlassRailItemBody
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -60,7 +65,6 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.AboutInfoScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.ControlManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.ControlSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.GameSettingsScreen
-import com.movtery.zalithlauncher.ui.screens.content.settings.GamepadSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.JavaManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.LauncherSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.RendererSettingsScreen
@@ -114,7 +118,6 @@ private val settingItems = listOf(
     CategoryItem(NormalNavKey.Settings.Renderer, { CategoryIcon(R.drawable.ic_video_settings, R.string.settings_tab_renderer) }, R.string.settings_tab_renderer),
     CategoryItem(NormalNavKey.Settings.Game, { CategoryIcon(R.drawable.ic_rocket_launch_filled, R.string.settings_tab_game) }, R.string.settings_tab_game),
     CategoryItem(NormalNavKey.Settings.Control, { CategoryIcon(R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control) }, R.string.settings_tab_control),
-    CategoryItem(NormalNavKey.Settings.Gamepad, { CategoryIcon(R.drawable.ic_sports_esports_outlined, R.string.settings_tab_gamepad) }, R.string.settings_tab_gamepad),
     CategoryItem(NormalNavKey.Settings.Launcher, { CategoryIcon(R.drawable.ic_setting_launcher, R.string.settings_tab_launcher) }, R.string.settings_tab_launcher),
     CategoryItem(NormalNavKey.Settings.JavaManager, { CategoryIcon(R.drawable.ic_java, R.string.settings_tab_java_manage) }, R.string.settings_tab_java_manage, division = true),
     CategoryItem(NormalNavKey.Settings.ControlManager, { CategoryIcon(R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control_manage) }, R.string.settings_tab_control_manage),
@@ -156,23 +159,54 @@ private fun TabMenu(
                 )
             }
 
-            NavigationRailItem(
-                selected = settingsScreenKey == item.key,
-                onClick = {
-                    navigateTo(item.key)
-                },
-                icon = {
-                    item.icon()
-                },
-                label = {
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        text = stringResource(item.textRes),
-                        maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium
+            val glassBackdrop = liquidGlassBackdrop()
+            if (glassBackdrop != null) {
+                LiquidGlassSurface(
+                    backdrop = glassBackdrop,
+                    shape = MaterialTheme.shapes.large,
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = if (settingsScreenKey == item.key) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.22f) else MaterialTheme.colorScheme.surface,
+                    blurRadius = 8.dp,
+                    onClick = { navigateTo(item.key) }
+                ) {
+                    GlassRailItemBody(
+                        icon = { item.icon() },
+                        label = {
+                            Text(
+                                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                                text = stringResource(item.textRes),
+                                maxLines = 1,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
                     )
                 }
-            )
+            } else {
+                NavigationRailItem(
+                    colors = NavigationRailItemDefaults.colors(
+                        indicatorColor = if (glassBackdrop != null) Color.Transparent else MaterialTheme.colorScheme.secondaryContainer,
+                        selectedIconColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSecondaryContainer,
+                        selectedTextColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSecondaryContainer,
+                        unselectedIconColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                        unselectedTextColor = if (glassBackdrop != null) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                    selected = settingsScreenKey == item.key,
+                    onClick = {
+                        navigateTo(item.key)
+                    },
+                    icon = {
+                        item.icon()
+                    },
+                    label = {
+                        Text(
+                            modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                            text = stringResource(item.textRes),
+                            maxLines = 1,
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
         }
@@ -214,9 +248,6 @@ private fun NavigationUI(
                 }
                 entry<NormalNavKey.Settings.Control> {
                     ControlSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel, submitError)
-                }
-                entry<NormalNavKey.Settings.Gamepad> {
-                    GamepadSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel)
                 }
                 entry<NormalNavKey.Settings.Launcher> {
                     LauncherSettingsScreen(

@@ -44,8 +44,4 @@ enum class NotificationChannelData(
      */
     TASK_SERVICE_CHANNEL("task.service", { it.getString(R.string.notification_task_service_name) }, null, IMPORTANCE_LOW),
 
-    /**
-     * 陶瓦联机 VPN 状态显示服务
-     */
-    TERRACOTTA_VPN_CHANNEL("terracotta_vpn_channel", { "Terracotta VPN" }, { it.getString(R.string.terracotta_terracotta) }, IMPORTANCE_LOW, false)
 }

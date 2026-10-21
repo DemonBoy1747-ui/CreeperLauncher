@@ -69,7 +69,6 @@ import com.movtery.zalithlauncher.ui.components.TitleAndSummary
 import com.movtery.zalithlauncher.ui.components.TooltipIconButton
 import com.movtery.zalithlauncher.ui.components.infiniteShimmer
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
-import com.movtery.zalithlauncher.ui.control.gyroscope.isGyroscopeAvailable
 import com.movtery.zalithlauncher.ui.control.mouse.CursorHotspot
 import com.movtery.zalithlauncher.ui.control.mouse.MouseHotspotEditorDialog
 import com.movtery.zalithlauncher.ui.control.mouse.MousePointer
@@ -421,106 +420,6 @@ fun ControlSettingsScreen(
                         suffix = "ms",
                         enabled = AllSettings.gestureControl.state,
                         fineTuningControl = true
-                    )
-                }
-            }
-
-            AnimatedItem(scope) { yOffset ->
-                SettingsCardColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-                ) {
-                    //检查陀螺仪是否可用
-                    val context = LocalContext.current
-                    val isGyroscopeAvailable = remember(context) {
-                        isGyroscopeAvailable(context = context)
-                    }
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Top,
-                        unit = AllSettings.gyroscopeControl,
-                        title = stringResource(R.string.settings_control_gyroscope_title),
-                        summary = stringResource(R.string.settings_control_gyroscope_summary),
-                        enabled = isGyroscopeAvailable,
-                        trailingIcon = if (!isGyroscopeAvailable) {
-                            @Composable {
-                                TooltipIconButton(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterVertically)
-                                        .padding(horizontal = 8.dp),
-                                    tooltipTitle = stringResource(R.string.generic_warning),
-                                    tooltipMessage = stringResource(R.string.settings_control_gyroscope_unsupported)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_warning_filled),
-                                        contentDescription = stringResource(R.string.generic_warning),
-                                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
-                                    )
-                                }
-                            }
-                        } else null
-                    )
-
-                    IntSliderSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeSensitivity,
-                        title = stringResource(R.string.settings_control_gyroscope_sensitivity_title),
-                        valueRange = AllSettings.gyroscopeSensitivity.floatRange,
-                        suffix = "%",
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state,
-                        fineTuningControl = true
-                    )
-
-                    IntSliderSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeSampleRate,
-                        title = stringResource(R.string.settings_control_gyroscope_sample_rate_title),
-                        summary = stringResource(R.string.settings_control_gyroscope_sample_rate_summary),
-                        valueRange = AllSettings.gyroscopeSampleRate.floatRange,
-                        suffix = "ms",
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state,
-                        fineTuningControl = true
-                    )
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeSmoothing,
-                        title = stringResource(R.string.settings_control_gyroscope_smoothing_title),
-                        summary = stringResource(R.string.settings_control_gyroscope_smoothing_summary),
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state
-                    )
-
-                    IntSliderSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeSmoothingWindow,
-                        title = stringResource(R.string.settings_control_gyroscope_smoothing_window_title),
-                        summary = stringResource(R.string.settings_control_gyroscope_smoothing_window_summary),
-                        valueRange = AllSettings.gyroscopeSmoothingWindow.floatRange,
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state && AllSettings.gyroscopeSmoothing.state
-                    )
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeInvertX,
-                        title = stringResource(R.string.settings_control_gyroscope_invert_x_title),
-                        summary = stringResource(R.string.settings_control_gyroscope_invert_x_summary),
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state
-                    )
-
-                    SwitchSettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
-                        unit = AllSettings.gyroscopeInvertY,
-                        title = stringResource(R.string.settings_control_gyroscope_invert_y_title),
-                        summary = stringResource(R.string.settings_control_gyroscope_invert_y_summary),
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state
                     )
                 }
             }

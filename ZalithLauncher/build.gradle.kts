@@ -55,6 +55,14 @@ android {
             keyAlias = "movtery_zalith"
             keyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
         }
+        //Ray: key milik sendiri. File dibuat CI dari secret RAY_KEYSTORE_BASE64 (atau taruh manual saat build lokal)
+        create("rayRelease") {
+            storeFile = file("ray_release.jks")
+            storePassword = System.getenv("RAY_STORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("RAY_KEY_ALIAS") ?: "ray"
+            keyPassword = System.getenv("RAY_KEY_PASSWORD") ?: ""
+        }
+        // Keep the same signing identity as the previously installed Lite APK.
         create("debugBuild") {
             storeFile = file("zalith_launcher_debug.jks")
             storePassword = defaultStorePassword
@@ -64,8 +72,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = zalithPackageName
-        applicationIdSuffix = ".v2"
+        applicationId = "com.ray.launcher.lite"
         minSdk = 26
         targetSdk = 34
         versionCode = launcherVersionCode
@@ -77,7 +84,13 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("releaseBuild")
+            //Ray: pakai key sendiri jika tersedia, kalau tidak ada fallback ke debugBuild agar build tidak gagal
+            signingConfig = if (file("ray_release.jks").isFile) {
+                signingConfigs.getByName("rayRelease")
+            } else {
+                logger.warn("BUILD: ray_release.jks not found, Release is signed with the debugBuild key.")
+                signingConfigs.getByName("debugBuild")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -87,7 +100,6 @@ android {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            signingConfig = signingConfigs.getByName("debugBuild")
         }
     }
 
@@ -261,9 +273,7 @@ dependencies {
     implementation(project(":LayerController"))
     implementation(project(":ColorPicker"))
     implementation(project(":CardGrid"))
-    implementation(project(":Terracotta"))
     implementation(project(":InputMap"))
-    implementation(project(":Guide"))
     //Utils
     implementation(libs.bytehook)
     implementation(libs.gson)
@@ -286,6 +296,7 @@ dependencies {
     implementation(libs.toml4j)
     implementation(libs.maven.artifact)
     implementation(libs.mmkv)
+    implementation(libs.prismal)
     implementation(libs.fishnet)
     implementation(libs.process.phoenix)
     implementation(libs.lunarcalendar)

@@ -96,7 +96,6 @@ import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
-import com.movtery.zalithlauncher.terracotta.TerracottaVPNService
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
@@ -104,6 +103,7 @@ import com.movtery.zalithlauncher.ui.control.input.HidableInputLayout
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderLayer
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderOperation
+import com.movtery.zalithlauncher.ui.components.GameGlassBackdrop
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.utils.computeGameDisplayLayout
@@ -114,7 +114,6 @@ import com.movtery.zalithlauncher.utils.getParcelableSafely
 import com.movtery.zalithlauncher.utils.rememberGameRenderSize
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
-import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -188,7 +187,6 @@ class VMViewModel : ViewModel() {
         bundle: Bundle,
         errorViewModel: ErrorViewModel,
         eventViewModel: EventViewModel,
-        gamepadViewModel: GamepadViewModel,
         exitListener: (Int, Boolean) -> Unit,
     ) {
         if (_session != null) return
@@ -227,7 +225,6 @@ class VMViewModel : ViewModel() {
                         config = config,
                         errorViewModel = errorViewModel,
                         eventViewModel = eventViewModel,
-                        gamepadViewModel = gamepadViewModel,
                         gameLauncher = launcher
                     ) { code ->
                         exitListener(code, false)
@@ -348,7 +345,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     /**
      * 手柄状态存储 ViewModel
      */
-    private val gamepadViewModel: GamepadViewModel by viewModels()
 
     private val vmViewModel: VMViewModel by viewModels()
 
@@ -365,8 +361,22 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         return vmViewModel.session.launcher.block()
     }
 
+    /**
+     * Prismal's App Startup initializer only runs in the main process, but this activity lives
+     * in the `:game` process. Bind the AGSL assets manually so glass can be drawn here.
+     */
+    private fun bindPrismalAssets() {
+        runCatching {
+            val clazz = Class.forName("com.styropyr0.prismal.internal.PrismalAgslAssets")
+            val instance = clazz.getField("INSTANCE").get(null)
+            clazz.getMethod("bind", android.content.res.AssetManager::class.java)
+                .invoke(instance, applicationContext.assets)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        bindPrismalAssets()
         //加载渲染器
         Renderers.init()
         //加载插件
@@ -389,7 +399,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
             bundle = bundle,
             errorViewModel = errorViewModel,
             eventViewModel = eventViewModel,
-            gamepadViewModel = gamepadViewModel,
             exitListener = { exitCode: Int, isSignal: Boolean ->
                 stopAllService()
                 if (exitCode != 0) {
@@ -411,9 +420,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
         window?.apply {
             setBackgroundDrawable(NativeColor.BLACK.toDrawable())
-            if (AllSettings.sustainedPerformance.getValue()) {
-                setSustainedPerformanceMode(true)
-            }
             addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) // 防止系统息屏
         }
 
@@ -482,8 +488,9 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         }
 
         setContent {
-            ZalithLauncherTheme {
+            ZalithLauncherTheme(forceGlassLayer = true) {
                 ObserveFullScreenSetting(AllSettings.gameFullScreen.state)
+                GameGlassBackdrop(modifier = Modifier.fillMaxSize())
                 Screen {
                     withHandler {
                         ComposableLayout(vmViewModel.textInputMode)
@@ -649,10 +656,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     private fun stopAllService() {
         stopService(Intent(this, GameService::class.java))
-        if (TerracottaVPNService.isRunning()) {
-            //停止指令必须用 stopService 下发
-            stopService(Intent(this, TerracottaVPNService::class.java))
-        }
     }
 
     @SuppressLint("RestrictedApi")
@@ -738,10 +741,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         val nativeSurface = Surface(surface)
         voteMaxDisplayRefreshRate(nativeSurface)
         SdlBridge.prepareSurface(this, nativeSurface, gameSurfaceView?.parent as? ViewGroup, surface)
-        //游戏请求 GLFW direct gamepad 时的通知接收方
-        CallbackBridge.setDirectGamepadEnableHandler {
-            LoggerBridge.append("ZalithLauncher: Direct gamepad handler enabled")
-        }
         if (vmViewModel.isRunning) {
             ZLBridge.setupBridgeWindow(nativeSurface)
             return

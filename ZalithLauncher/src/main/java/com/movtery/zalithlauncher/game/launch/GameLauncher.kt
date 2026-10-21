@@ -42,8 +42,6 @@ import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.Renderers
-import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
-import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
 import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
@@ -424,7 +422,6 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
 
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
-    if (renderer != GL4ESRenderer && renderer != NGGL4ESRenderer) {
         envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
         envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
         envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"
@@ -433,7 +430,6 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
         envMap["allow_higher_compat_version"] = "true"
         envMap["allow_glsl_extension_directive_midshader"] = "true"
         envMap["LIB_MESA_NAME"] = getRendererLibrary() ?: "null"
-    }
 
     if (!envMap.containsKey("LIBGL_ES")) {
         val glesMajor = getDetectedVersion()

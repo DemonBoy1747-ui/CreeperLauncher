@@ -31,11 +31,11 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import com.movtery.zalithlauncher.ui.components.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import com.movtery.zalithlauncher.ui.components.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import com.movtery.zalithlauncher.ui.components.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -64,11 +65,13 @@ import com.movtery.zalithlauncher.library.LibraryInfo
 import com.movtery.zalithlauncher.library.libraryData
 import com.movtery.zalithlauncher.path.URL_COMMUNITY
 import com.movtery.zalithlauncher.path.URL_MCMOD
-import com.movtery.zalithlauncher.path.URL_PROJECT
 import com.movtery.zalithlauncher.path.URL_SUPPORT
 import com.movtery.zalithlauncher.path.URL_WEBLATE
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedLazyColumn
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.ScalingActionButton
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -105,32 +108,30 @@ fun AboutInfoScreen(
                         ButtonIconItem(
                             icon = painterResource(R.drawable.img_launcher),
                             title = BuildKeys.LAUNCHER_NAME,
-                            text = stringResource(R.string.about_launcher_version, BuildConfig.VERSION_NAME),
-                            button = {
-                                Button(
-                                    onClick = checkUpdate
-                                ) {
-                                    Text(text = stringResource(R.string.upgrade_title))
-                                }
-                                Button(
-                                    onClick = { openLink(URL_PROJECT) }
-                                ) {
-                                    Text(text = stringResource(R.string.about_launcher_project_link))
-                                }
-                            }
+                            text = stringResource(R.string.about_launcher_version, BuildConfig.VERSION_NAME) + "\n" + stringResource(R.string.launcher_unofficial_notice),
+                            //Lite: tombol “Cek pembaruan” dan “Link Project” ditahan sampai fork siap dirilis
+                            button = {}
                         )
 
                         ButtonIconItem(
                             icon = painterResource(R.drawable.img_avatar_movtery),
                             title = stringResource(R.string.about_launcher_author_movtery_title),
-                            text = stringResource(R.string.about_launcher_author_movtery_text, BuildKeys.LAUNCHER_NAME),
+                            text = stringResource(R.string.about_launcher_author_movtery_text),
                             button = {
-                                Button(
+                                ScalingActionButton(
                                     onClick = { openLink(URL_SUPPORT) }
                                 ) {
                                     Text(text = stringResource(R.string.about_sponsor))
                                 }
                             }
+                        )
+
+                        //Lite: maintainer fork ini; tombol sponsor dikosongkan dulu
+                        ButtonIconItem(
+                            icon = painterResource(R.drawable.img_avatar_keda),
+                            title = "Keda",
+                            text = stringResource(R.string.about_launcher_maintainer_keda_text),
+                            button = {}
                         )
                     }
                 }
@@ -147,7 +148,7 @@ fun AboutInfoScreen(
                             title = "bangbang93",
                             text = stringResource(R.string.about_acknowledgements_bangbang93_text, BuildKeys.LAUNCHER_SHORT_NAME),
                             button = {
-                                Button(
+                                ScalingActionButton(
                                     onClick = { openLink("https://ifdian.net/a/bangbang93") }
                                 ) {
                                     Text(text = stringResource(R.string.about_sponsor))
@@ -179,7 +180,7 @@ fun AboutInfoScreen(
                             title = "mcmod-info-mirror",
                             text = stringResource(R.string.about_acknowledgements_mcim_text, BuildKeys.LAUNCHER_SHORT_NAME),
                             button = {
-                                Button(
+                                ScalingActionButton(
                                     onClick = { openLink("https://www.mcimirror.top/sponsor") }
                                 ) {
                                     Text(text = stringResource(R.string.about_sponsor))
@@ -216,7 +217,6 @@ fun AboutInfoScreen(
                 }
             }
 
-            //额外依赖库板块
             animatedItem(scope) { yOffset ->
                 ChunkLayout(
                     modifier = Modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
@@ -230,7 +230,6 @@ fun AboutInfoScreen(
                 }
             }
 
-            //已加载插件板块
             PluginLoader.allPlugins.takeIf { it.isNotEmpty() }?.let { allPlugins ->
                 animatedItem(scope) { yOffset ->
                     ChunkLayout(
@@ -280,6 +279,38 @@ private fun ChunkLayout(
 }
 
 @Composable
+private fun AboutItemSurface(
+    modifier: Modifier = Modifier,
+    color: Color,
+    contentColor: Color,
+    shape: Shape,
+    content: @Composable () -> Unit
+) {
+    val backdrop = liquidGlassBackdrop()
+    if (backdrop != null) {
+        LiquidGlassSurface(
+            backdrop = backdrop,
+            shape = shape,
+            modifier = modifier,
+            containerColor = color,
+            contentColor = contentColor,
+            blurRadius = 8.dp
+        ) {
+            content()
+        }
+    } else {
+        Surface(
+            modifier = modifier,
+            color = color,
+            contentColor = contentColor,
+            shape = shape,
+            onClick = {},
+            content = content
+        )
+    }
+}
+
+@Composable
 private fun LinkIconItem(
     modifier: Modifier = Modifier,
     icon: Painter,
@@ -291,12 +322,11 @@ private fun LinkIconItem(
     contentColor: Color = onItemColor(),
     useImage: Boolean = true
 ) {
-    Surface(
+    AboutItemSurface(
         modifier = modifier,
         color = color,
         contentColor = contentColor,
-        shape = MaterialTheme.shapes.large,
-        onClick = {}
+        shape = MaterialTheme.shapes.large
     ) {
         Row(
             modifier = Modifier
@@ -374,12 +404,11 @@ private fun ButtonIconItem(
     color: Color = itemColor(),
     contentColor: Color = onItemColor(),
 ) {
-    Surface(
+    AboutItemSurface(
         modifier = modifier,
         color = color,
         contentColor = contentColor,
-        shape = MaterialTheme.shapes.large,
-        onClick = {}
+        shape = MaterialTheme.shapes.large
     ) {
         Row(
             modifier = Modifier
@@ -423,12 +452,11 @@ private fun PluginInfoItem(
     color: Color = itemColor(),
     contentColor: Color = onItemColor(),
 ) {
-    Surface(
+    AboutItemSurface(
         modifier = modifier,
         color = color,
         contentColor = contentColor,
-        shape = MaterialTheme.shapes.large,
-        onClick = {}
+        shape = MaterialTheme.shapes.large
     ) {
         val context = LocalContext.current
         Row(
@@ -497,12 +525,11 @@ private fun LibraryInfoItem(
     openLicense: (Int) -> Unit,
     openLink: (url: String) -> Unit
 ) {
-    Surface(
+    AboutItemSurface(
         modifier = modifier,
         color = color,
         contentColor = contentColor,
-        shape = MaterialTheme.shapes.large,
-        onClick = {}
+        shape = MaterialTheme.shapes.large
     ) {
         Row(
             modifier = Modifier

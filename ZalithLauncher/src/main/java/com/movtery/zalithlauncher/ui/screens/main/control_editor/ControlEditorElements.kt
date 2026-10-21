@@ -37,9 +37,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import com.movtery.zalithlauncher.ui.components.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import com.movtery.zalithlauncher.ui.components.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,8 +57,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.movtery.guide.guideLazyList
-import com.movtery.guide.guideNode
 import com.movtery.layer_controller.data.HideLayerWhen
 import com.movtery.layer_controller.data.JoystickTriggerMode
 import com.movtery.layer_controller.data.VisibilityType
@@ -83,7 +81,6 @@ import com.movtery.zalithlauncher.ui.components.MenuSwitchButton
 import com.movtery.zalithlauncher.ui.components.MenuTextButton
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.lazyScrollWithBar
-import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import sh.calvin.reorderable.ReorderableItem
@@ -348,15 +345,6 @@ private fun EditorMenuContent(
     val listState = rememberLazyListState()
     LazyColumn(
         modifier = modifier
-            .guideLazyList(listState) { key ->
-                when (key) {
-                    GuideKeys.Editor.Step.CreateLayer -> "add_button"
-                    GuideKeys.Editor.Step.AddStyles -> "joystick_style_list"
-                    GuideKeys.Editor.Step.Preview -> "using_gamepad"
-                    GuideKeys.Editor.Step.Save -> "save_and_exit"
-                    else -> null
-                }
-            }
             .lazyScrollWithBar(listState),
         state = listState,
         contentPadding = PaddingValues(all = 8.dp),
@@ -366,10 +354,6 @@ private fun EditorMenuContent(
         item(key = "add_button") {
             MenuTextButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.AddButtons,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 enabled = isPreviewMode.not(),
                 text = stringResource(R.string.control_editor_menu_new_widget_button),
@@ -383,10 +367,6 @@ private fun EditorMenuContent(
         item(key = "add_textbox") {
             MenuTextButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.AddButtons,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 enabled = isPreviewMode.not(),
                 text = stringResource(R.string.control_editor_menu_new_widget_text),
@@ -400,10 +380,6 @@ private fun EditorMenuContent(
         item(key = "add_joystick") {
             MenuTextButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.AddButtons,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 enabled = isPreviewMode.not(),
                 text = stringResource(R.string.control_editor_menu_new_widget_joystick),
@@ -417,10 +393,6 @@ private fun EditorMenuContent(
         item(key = "control_appearance_list") {
             MenuTextButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.AddStyles,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_edit_style_config),
                 enabled = isPreviewMode.not(),
@@ -437,10 +409,6 @@ private fun EditorMenuContent(
         item(key = "joystick_style_list") {
             MenuTextButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.AddStyles,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_edit_joystick_style_list),
                 enabled = isPreviewMode.not(),
@@ -461,10 +429,6 @@ private fun EditorMenuContent(
         item(key = "preview_control_layout") {
             MenuSwitchButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.Preview,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_preview_mode),
                 switch = isPreviewMode,
@@ -478,10 +442,6 @@ private fun EditorMenuContent(
         item(key = "preview_scenario") {
             MenuListLayout(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.Preview,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 title = stringResource(R.string.control_editor_menu_preview_mode_scenario),
                 items = PreviewScenario.entries,
@@ -500,10 +460,6 @@ private fun EditorMenuContent(
         item(key = "using_physical_mouse") {
             MenuSwitchButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.Preview,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_preview_is_mouse),
                 switch = previewHideLayerWhen == HideLayerWhen.WhenMouse,
@@ -523,10 +479,6 @@ private fun EditorMenuContent(
         item(key = "using_gamepad") {
             MenuSwitchButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.Preview,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_preview_is_gamepad),
                 switch = previewHideLayerWhen == HideLayerWhen.WhenGamepad,
@@ -598,10 +550,6 @@ private fun EditorMenuContent(
         item(key = "save") {
             MenuTextButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.Save,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 text = stringResource(R.string.generic_save),
                 onClick = onSave,
@@ -614,10 +562,6 @@ private fun EditorMenuContent(
         item(key = "save_and_exit") {
             MenuTextButton(
                 modifier = Modifier
-                    .guideNode(
-                        key = GuideKeys.Editor.Step.Save,
-                        holeRadius = 16.dp
-                    )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_save_and_exit),
                 onClick = saveAndExit,
@@ -685,7 +629,6 @@ private fun ColumnScope.ControlLayerMenu(
 
     LazyColumn(
         modifier = Modifier
-            .guideNode(GuideKeys.Editor.Step.LayerList)
             .weight(1f)
             .lazyScrollWithBar(lazyListState),
         state = lazyListState,
@@ -726,10 +669,6 @@ private fun ColumnScope.ControlLayerMenu(
     }
     ScalingActionButton(
         modifier = Modifier
-            .guideNode(
-                key = GuideKeys.Editor.Step.CreateLayer,
-                holeRadius = 50.dp
-            )
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .fillMaxWidth(),
         onClick = createLayer

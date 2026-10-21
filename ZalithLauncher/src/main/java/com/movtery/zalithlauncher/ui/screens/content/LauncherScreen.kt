@@ -39,7 +39,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import com.movtery.zalithlauncher.ui.components.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -53,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
@@ -73,8 +74,6 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.cardgrid.state.rememberCardGridState
-import com.movtery.guide.GuideSide
-import com.movtery.guide.guideNode
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
@@ -85,10 +84,11 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.ui.components.LiquidGlassSurface
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.SkinPreview3D
-import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
@@ -121,13 +121,7 @@ fun LauncherScreen(
     onLaunchGame: (Version?) -> Unit,
     onQuickPlayServer: (Version?, String) -> Unit,
     onOpenLink: (String) -> Unit,
-    startGuideOnce: (GuideKeys.Keys) -> Unit,
 ) {
-    LaunchedEffect(Unit) {
-        //发起新手引导
-        startGuideOnce(GuideKeys.Main)
-    }
-
     BaseScreen(
         screenKey = NormalNavKey.LauncherMain,
         currentKey = backStackViewModel.mainScreen.currentKey
@@ -197,10 +191,6 @@ fun LauncherScreen(
                 ) {
                 ContentMenu(
                     modifier = Modifier
-                        .guideNode(
-                            key = GuideKeys.Main.Step.CardTip,
-                            holeRadius = 0.dp
-                        )
                         .weight(ContentWeight)
                         .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
                     isVisible = isVisible,
@@ -476,19 +466,38 @@ private fun VersionsContent(
             }
         }
 
-        ScalingActionButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(PaddingValues(horizontal = 12.dp))
-                .padding(bottom = 8.dp),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp),
-            onClick = {
-                onLaunchGame(null)
-            },
-            content = {
-                MarqueeText(text = stringResource(R.string.main_launch_game))
-            }
-        )
+        val glassBackdrop = liquidGlassBackdrop()
+        val launchButtonModifier = Modifier
+            .fillMaxWidth()
+            .padding(PaddingValues(horizontal = 12.dp))
+            .padding(bottom = 8.dp)
+        if (glassBackdrop != null) {
+            ScalingActionButton(
+                modifier = launchButtonModifier,
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                onClick = { onLaunchGame(null) },
+                content = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        MarqueeText(text = stringResource(R.string.main_launch_game))
+                    }
+                }
+            )
+        } else {
+            ScalingActionButton(
+                modifier = launchButtonModifier,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+                    contentColor = Color.White
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+                onClick = { onLaunchGame(null) },
+                content = {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        MarqueeText(text = stringResource(R.string.main_launch_game))
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -504,9 +513,9 @@ private fun ActionMenuCardContent(
     BackgroundCard(
         modifier = Modifier
             .actionMenuDragAnchor()
-            .guideNode(GuideKeys.Main.Step.CardDrag)
             .then(modifier),
-        shape = MaterialTheme.shapes.extraLarge
+        shape = MaterialTheme.shapes.extraLarge,
+        liquidGlass = true
     ) {
         ConstraintLayout(
             modifier = Modifier.fillMaxSize()
@@ -520,10 +529,7 @@ private fun ActionMenuCardContent(
                         bottom.linkTo(versionManagerLayout.top)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
-                    }.guideNode(
-                        key = GuideKeys.Main.Step.Account,
-                        preferSide = GuideSide.Below
-                    ),
+                    },
                 account = account,
                 onClick = toAccountManageScreen
             )
@@ -563,10 +569,6 @@ private fun ActionMenuTallerContent(
     Column(
         modifier = Modifier
             .actionMenuDragAnchor()
-            .guideNode(
-                key = GuideKeys.Main.Step.CardDrag,
-                holeRadius = 0.dp,
-            )
             .then(modifier),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -586,13 +588,9 @@ private fun ActionMenuTallerContent(
 
         BackgroundCard(
             modifier = Modifier
-                .guideNode(
-                    key = GuideKeys.Main.Step.Account,
-                    preferSide = GuideSide.Above,
-                    holeRadius = 28.dp
-                )
                 .fillMaxWidth(),
             shape = MaterialTheme.shapes.extraLarge,
+            liquidGlass = true,
             onClick = toAccountManageScreen
         ) {
             AccountAvatarRow(
@@ -604,6 +602,7 @@ private fun ActionMenuTallerContent(
         BackgroundCard(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.extraLarge,
+            liquidGlass = true
         ) {
             VersionsContent(
                 modifier = Modifier.fillMaxWidth(),
@@ -683,9 +682,6 @@ private fun VersionManagerLayout(
                 onLongClick = {
                     if (version != null) openListMenu()
                 }
-            ).guideNode(
-                key = GuideKeys.Main.Step.VersionList,
-                preferSide = GuideSide.Above,
             ).padding(PaddingValues(all = 8.dp))
     ) {
         if (isRefreshing) {
