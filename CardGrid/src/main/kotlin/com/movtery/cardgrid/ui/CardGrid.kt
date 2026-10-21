@@ -88,17 +88,9 @@ private const val GhostAlpha = 0.5f
 /** 空槽描边的不透明度 */
 private const val SlotStrokeAlpha = 0.5f
 
-/** 调整态工具条的高度 */
-private val ToolbarHeight = 40.dp
-/** 工具条与卡片边缘的间隙 */
-private val ToolbarGap = 8.dp
-/** 调整态工具条的悬浮层级，置于全部卡片（含拖动虚影）之上 */
-private const val AdjustingBarZIndex = 4f
-
 /**
  * 卡片网格容器
  * @param cardBackground 卡片内容的背景装饰，在卡片表面内部应用
- * @param adjustingBar 工具条 UI 组件
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -108,7 +100,6 @@ fun CardGrid(
     containerColor: Color = MaterialTheme.colorScheme.surfaceBright,
     contentColor: Color = MaterialTheme.colorScheme.onSurface,
     cardBackground: (@Composable (Modifier) -> Modifier)? = null,
-    adjustingBar: (@Composable (Modifier, GridCard) -> Unit)? = null,
 ) {
     val hostDirection = LocalLayoutDirection.current
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
@@ -118,7 +109,6 @@ fun CardGrid(
             containerColor = containerColor,
             contentColor = contentColor,
             cardBackground = cardBackground,
-            adjustingBar = adjustingBar,
             contentDirection = hostDirection
         )
     }
@@ -132,7 +122,6 @@ private fun CardGridCanvas(
     containerColor: Color,
     contentColor: Color,
     cardBackground: (@Composable (Modifier) -> Modifier)?,
-    adjustingBar: (@Composable (Modifier, GridCard) -> Unit)?,
     contentDirection: LayoutDirection
 ) {
     val density = LocalDensity.current
@@ -258,17 +247,6 @@ private fun CardGridCanvas(
                 )
             }
         }
-        val adjustingCard = state.adjustingCardId
-            ?.let { id -> state.cards.firstOrNull { it.id == id } }
-        if (adjustingCard != null && adjustingBar != null) {
-            key(adjustingCard.id) {
-                AdjustingBarOverlay(
-                    state = state,
-                    card = adjustingCard,
-                    adjustingBar = adjustingBar
-                )
-            }
-        }
     }
 }
 
@@ -315,47 +293,6 @@ private fun CardSlot(
 }
 
 /**
- * 调整态工具条悬浮层
- */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun AdjustingBarOverlay(
-    state: CardGridState,
-    card: GridCard,
-    adjustingBar: @Composable (Modifier, GridCard) -> Unit
-) {
-    val density = LocalDensity.current
-    val barExtentPx = with(density) { (ToolbarHeight + ToolbarGap).toPx() }
-    val cardTopInViewport = state.areaOffsetInRoot.y +
-        state.rectFor(state.effectiveLayout(card)).top - state.viewportTopPx
-    val placeAbove = cardTopInViewport >= barExtentPx
-    val barOffset by animateDpAsState(
-        targetValue = if (placeAbove) {
-            -(ToolbarHeight + ToolbarGap)
-        } else {
-            with(density) { state.renderRectOf(card).height.toDp() } + ToolbarGap
-        },
-        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
-        label = "cardToolbarOffset"
-    )
-
-    adjustingBar(
-        Modifier
-            .zIndex(AdjustingBarZIndex)
-            .height(ToolbarHeight)
-            .layout { measurable, constraints ->
-                val placeable = measurable.measure(constraints)
-                val rect = state.renderRectOf(card)
-                val x = (rect.center.x - placeable.width / 2f).roundToInt()
-                val y = rect.top.roundToInt() + barOffset.roundToPx()
-                layout(placeable.width, placeable.height) { placeable.place(x, y) }
-            }
-            .gestureGuard(),
-        card
-    )
-}
-
-/**
  * 卡片表面的容器：交互态的抬升动画与调整态的选中手柄
  */
 @Composable
@@ -394,22 +331,6 @@ private fun CardSurface(
             modifier = cardBackground?.invoke(Modifier) ?: Modifier,
             content = content
         )
-    }
-}
-
-/**
- * 消费落在自身范围内的全部指针事件：
- * 子节点先行处理，未被消费的事件在此标记为已消费，
- * 使手势在向上冒泡途中止于自身，不再触达祖先节点。
- */
-private fun Modifier.gestureGuard(): Modifier = pointerInput(Unit) {
-    awaitEachGesture {
-        awaitFirstDown(requireUnconsumed = false).consume()
-        while (true) {
-            val event = awaitPointerEvent()
-            event.changes.forEach { it.consume() }
-            if (event.changes.none { it.pressed }) return@awaitEachGesture
-        }
     }
 }
 

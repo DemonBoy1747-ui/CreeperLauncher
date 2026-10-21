@@ -720,6 +720,8 @@
     <string name="versions_config_isolation_title">Version Isolation</string>
     <string name="versions_config_isolation_summary">Isolate the current version so that its data does not interfere with any other versions</string>
     <string name="versions_config_renderer">Renderer</string>
+    <string name="versions_config_renderer_reset_global">Reset to Global</string>
+    <string name="versions_config_renderer_reset_global_message">The launcher will discard the configuration of this version for %s and reset to using the global configuration. This action cannot be undone.</string>
     <string name="versions_config_vulkan_driver">Vulkan Driver</string>
     <string name="versions_config_control">Control Layout</string>
     <string name="versions_config_java_runtime_summary">Specify the Java environment used by the current version</string>
@@ -838,6 +840,9 @@
     <string name="saves_manage_no_saves">No saves for this version</string>
     <string name="saves_manage_import_unpacking">Unpacking save: %s</string>
     <string name="saves_manage_import_failed">An error occurred while importing the save</string>
+    <string name="saves_manage_compress_share">Compress and Share Save</string>
+    <string name="saves_manage_compressing">Compressing save: %s</string>
+    <string name="saves_manage_export_failed">An error occurred while compressing the save</string>
     <string name="resource_pack_manage">Resource Packs</string>
     <string name="resource_pack_manage_info">Resource Pack Information</string>
     <string name="resource_pack_manage_invalid">Invalid Resource Pack Format</string>
@@ -917,6 +922,8 @@
     <string name="settings_renderer_full_screen_summary">Enable fullscreen mode, ignoring safe areas like notches and punch-holes</string>
     <string name="settings_renderer_sustained_performance_title">Sustained Performance Mode</string>
     <string name="settings_renderer_sustained_performance_summary">When enabled, the system provides more stable performance for the game, suitable for long play sessions, but may slightly reduce device responsiveness to prevent overheating</string>
+    <string name="settings_renderer_max_refresh_rate_title">Request Max Refresh Rate</string>
+    <string name="settings_renderer_max_refresh_rate_summary">Request the display to switch to the highest refresh rate supported at the current resolution, lifting the frame rate cap on some devices</string>
     <string name="settings_renderer_shader_dump_title">Shader Logging</string>
     <string name="settings_renderer_shader_dump_summary">Output the converted shader code during game runtime to a log file for easier debugging and graphics rendering analysis</string>
     <string name="settings_renderer_vulkan_driver_system_title">Use System Vulkan Driver</string>
@@ -1341,6 +1348,7 @@
     <string name="fm_import_file">Import File</string>
     <string name="fm_import_dir">Import Directory</string>
     <string name="fm_import_empty">Nothing to import</string>
+    <string name="fm_browse_external">Browse in Other File Managers</string>
     <string name="fm_sort_name">Name</string>
     <string name="fm_sort_size">Size</string>
     <string name="fm_sort_modified">Modified</string>

@@ -94,6 +94,11 @@ object AllSettings : SettingsRegistry() {
     val useSurfaceView = boolSetting("useSurfaceView", false)
 
     /**
+     * 游戏运行时请求系统切换到同分辨率最高刷新率档位（关闭则回落系统自适应刷新）
+     */
+    val requestMaxRefreshRate = boolSetting("requestMaxRefreshRate", true)
+
+    /**
      * Zink 垂直同步
      */
     val vsyncInZink = boolSetting("vsyncInZink", false)

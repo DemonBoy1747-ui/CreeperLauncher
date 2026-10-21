@@ -306,8 +306,16 @@ fun SkinPreview3D(
         LaunchedEffect(pageFinished, skinFile, capeFile, modelType, refreshKey) {
             if (!pageFinished) return@LaunchedEffect
             runCatching {
-                skinFile?.inputStream().use { playerSkin.loadSkin(it, modelType) }
-                capeFile?.inputStream().use { playerSkin.loadCape(it) }
+                if (skinFile != null && skinFile.exists()) {
+                    skinFile.inputStream().use { playerSkin.loadSkin(it, modelType) }
+                } else {
+                    playerSkin.loadSkin(inputStream = null, modelType)
+                }
+                if (capeFile != null && capeFile.exists()) {
+                    capeFile.inputStream().use { playerSkin.loadCape(it) }
+                } else {
+                    playerSkin.loadCape(inputStream = null)
+                }
             }
         }
 

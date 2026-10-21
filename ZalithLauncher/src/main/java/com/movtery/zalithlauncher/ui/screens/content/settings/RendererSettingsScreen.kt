@@ -277,6 +277,14 @@ fun RendererSettingsScreen(
                 ) {
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Top,
+                        unit = AllSettings.requestMaxRefreshRate,
+                        title = stringResource(R.string.settings_renderer_max_refresh_rate_title),
+                        summary = stringResource(R.string.settings_renderer_max_refresh_rate_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
                         unit = AllSettings.vsyncInZink,
                         title = stringResource(R.string.settings_renderer_vsync_in_zink_title),

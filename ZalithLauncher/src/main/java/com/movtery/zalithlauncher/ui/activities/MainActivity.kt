@@ -82,6 +82,7 @@ import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.ui.vulkan_checker.VCOperation
 import com.movtery.zalithlauncher.ui.vulkan_checker.VulkanChecker
 import com.movtery.zalithlauncher.upgrade.TooFrequentOperationException
+import com.movtery.zalithlauncher.utils.RegionRestriction
 import com.movtery.zalithlauncher.utils.compareLangTag
 import com.movtery.zalithlauncher.utils.copyText
 import com.movtery.zalithlauncher.utils.festival.getTodayFestivals
@@ -206,6 +207,10 @@ class MainActivity : BaseAppCompatActivity() {
 
         //初始化通知管理（创建渠道）
         NotificationManager.initManager(this)
+
+        lifecycleScope.launch {
+            RegionRestriction.ensureChecked()
+        }
 
         //错误信息展示
         lifecycleScope.launch {
