@@ -83,6 +83,13 @@ val LocalLiquidGlassBackdrop = staticCompositionLocalOf<PrismalGlassLayer?> { nu
 val LocalLiquidGlassSampler = staticCompositionLocalOf<PrismalBackdrop?> { null }
 
 /**
+ * Master switch for recording the whole page behind open dialogs. Disabled: with it on, opening a
+ * dialog a second time (e.g. "Add account") crashed the launcher. While off, dialogs sample the
+ * wallpaper layer instead (still corrected for the dialog window's position).
+ */
+private const val RECORD_PAGE_BEHIND_DIALOGS = false
+
+/**
  * Records the whole launcher page (wallpaper + screen UI) so dialogs can blur what is really behind
  * them, not only the wallpaper. Recording is only switched on while a dialog is open
  * ([openDialogs] > 0), because it draws the page content a second time.
@@ -91,6 +98,9 @@ val LocalLiquidGlassSampler = staticCompositionLocalOf<PrismalBackdrop?> { null 
 class GlassPageCapture(val layer: PrismalGlassLayer) {
     /** Number of [GlassDialog]s currently shown. */
     var openDialogs by mutableIntStateOf(0)
+
+    /** True while the page is actually being recorded into [layer]. */
+    val recording: Boolean get() = RECORD_PAGE_BEHIND_DIALOGS && openDialogs > 0
 
     /** Screen position of the captured page's top-left corner. */
     var originOnScreen by mutableStateOf(Offset.Zero)
@@ -106,7 +116,7 @@ val LocalLiquidGlassPage = staticCompositionLocalOf<GlassPageCapture?> { null }
 @Composable
 fun Modifier.glassPageCapture(): Modifier {
     val page = LocalLiquidGlassPage.current ?: return this
-    val recording = page.openDialogs > 0
+    val recording = page.recording
     return this
         .onGloballyPositioned { coordinates ->
             if (coordinates.isAttached) page.originOnScreen = coordinates.localToScreen(Offset.Zero)
@@ -122,7 +132,7 @@ fun Modifier.glassPageCapture(): Modifier {
  * Composables hosting such a view should hide it while this is true.
  */
 @Composable
-fun isGlassPageRecording(): Boolean = (LocalLiquidGlassPage.current?.openDialogs ?: 0) > 0
+fun isGlassPageRecording(): Boolean = LocalLiquidGlassPage.current?.recording == true
 
 /**
  * A dialog is its own Android window with its own coordinate space, so Prismal's
@@ -180,7 +190,9 @@ fun GlassDialog(
             onDispose { page.openDialogs-- }
         }
     }
-    val sampler = remember(record, page) { DialogWindowBackdrop(page?.layer ?: record, page) }
+    val sampler = remember(record, page) {
+        DialogWindowBackdrop(if (RECORD_PAGE_BEHIND_DIALOGS) page?.layer ?: record else record, page)
+    }
 
     Dialog(onDismissRequest = onDismissRequest, properties = properties) {
         CompositionLocalProvider(LocalLiquidGlassSampler provides sampler) {
