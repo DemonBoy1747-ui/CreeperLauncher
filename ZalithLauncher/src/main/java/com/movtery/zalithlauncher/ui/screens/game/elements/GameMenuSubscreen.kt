@@ -319,6 +319,17 @@ private fun GameActionContent(
                 contentColor = contentColor
             )
         }
+        //请求最高刷新率
+        item {
+            MenuSwitchButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.settings_renderer_max_refresh_rate_title),
+                switch = AllSettings.requestMaxRefreshRate.state,
+                onSwitch = { AllSettings.requestMaxRefreshRate.save(it) },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
 
         item {
             Spacer(modifier = Modifier.height(8.dp))

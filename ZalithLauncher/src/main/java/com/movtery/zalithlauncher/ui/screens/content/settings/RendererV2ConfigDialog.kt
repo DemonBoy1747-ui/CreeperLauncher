@@ -40,6 +40,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import com.movtery.zalithlauncher.ui.components.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import com.movtery.zalithlauncher.ui.components.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -82,11 +83,13 @@ import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 /**
  * 新一代渲染器插件的环境变量配置对话框
  * @param units 该渲染器所有可配置的环境变量单元
+ * @param onResetToGlobal 重置为全局配置的回调，为 null 时不显示重置按钮
  */
 @Composable
 fun RendererV2ConfigDialog(
     units: List<EnvSettingUnit>,
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
+    onResetToGlobal: (() -> Unit)? = null
 ) {
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -171,8 +174,17 @@ fun RendererV2ConfigDialog(
                     //底部按钮
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
+                        horizontalArrangement = if (onResetToGlobal == null) {
+                            Arrangement.End
+                        } else {
+                            Arrangement.SpaceBetween
+                        }
                     ) {
+                        if (onResetToGlobal != null) {
+                            FilledTonalButton(onClick = onResetToGlobal) {
+                                MarqueeText(text = stringResource(R.string.versions_config_renderer_reset_global))
+                            }
+                        }
                         Button(onClick = onDismissRequest) {
                             MarqueeText(text = stringResource(R.string.generic_close))
                         }

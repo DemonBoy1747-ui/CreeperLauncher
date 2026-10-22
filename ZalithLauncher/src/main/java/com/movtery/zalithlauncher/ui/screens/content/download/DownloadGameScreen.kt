@@ -57,6 +57,7 @@ import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.NotificationCheck
+import com.movtery.zalithlauncher.ui.components.RegionRestrictionNotice
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
@@ -70,6 +71,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialo
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
+import com.movtery.zalithlauncher.utils.RegionRestriction
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.isUsingMobileData
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
@@ -190,6 +192,16 @@ fun DownloadGameScreen(
     val stackTopKey = backStack.lastOrNull()
     LaunchedEffect(stackTopKey) {
         onCurrentKeyChange(stackTopKey)
+    }
+
+    val regionState by RegionRestriction.state.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) {
+        RegionRestriction.ensureChecked()
+    }
+
+    if (regionState.restricting) {
+        RegionRestrictionNotice(modifier = Modifier.fillMaxSize())
+        return
     }
 
     GameInstallOperation(

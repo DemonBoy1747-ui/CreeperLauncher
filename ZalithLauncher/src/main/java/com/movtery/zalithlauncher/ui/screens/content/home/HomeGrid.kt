@@ -18,15 +18,24 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -46,6 +55,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.res.painterResource
@@ -57,7 +67,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.movtery.cardgrid.model.CardRect
 import com.movtery.cardgrid.state.CardGridState
 import com.movtery.cardgrid.state.CardSeed
-import com.movtery.cardgrid.state.GridCard
 import com.movtery.cardgrid.ui.CardGrid
 import com.movtery.cardgrid.ui.CardGridAutoScroll
 import com.movtery.zalithlauncher.R
@@ -229,20 +238,30 @@ fun HomeGrid(
                         enabled = true
                     )
                 },
-                adjustingBar = { modifier, card ->
-                    CardToolbar(
-                        modifier = modifier,
-                        state = state,
-                        card = card,
-                        onShowSettings = { operation = HomeCardOperation.ServerCardSettings(card.id) },
-                    )
-                },
             )
         }
         CardGridAutoScroll(
             state = state,
             scrollState = scrollState
         )
+
+        //调整态底部操作栏
+        AnimatedVisibility(
+            visible = state.isAdjusting,
+            enter = fadeIn() + slideInVertically { it / 2 },
+            exit = fadeOut() + slideOutVertically { it / 2 },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 9.dp)
+        ) {
+            AdjustingBar(
+                state = state,
+                onShowSettings = {
+                    operation = HomeCardOperation.ServerCardSettings(it)
+                }
+            )
+        }
     }
 
     HomeCardOperation(
@@ -267,43 +286,49 @@ private fun HomeCardOperation(
     }
 }
 
-
+/**
+ * 调整态底部操作栏
+ */
 @Composable
-private fun CardToolbar(
+private fun AdjustingBar(
     state: CardGridState,
-    card: GridCard,
-    onShowSettings: () -> Unit,
-    modifier: Modifier = Modifier,
+    onShowSettings: (String) -> Unit
 ) {
+    val adjustingId = state.adjustingCardId
+    val isServerCard = remember(state.cards, adjustingId) {
+        state.cards.firstOrNull { it.id == adjustingId }?.type?.typeId == HomeCards.SERVER_CARD_TYPE_ID
+    }
+
     Surface(
-        modifier = modifier,
+        modifier = Modifier
+            .padding(all = 3.dp)
+            .barGuard(),
         shape = CircleShape,
         color = MaterialTheme.colorScheme.surfaceContainerHighest,
         contentColor = MaterialTheme.colorScheme.onSurface,
         shadowElevation = 3.dp
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(all = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            modifier = Modifier.padding(all = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (card.type.typeId == HomeCards.SERVER_CARD_TYPE_ID) {
-                //卡片设置入口
+            AnimatedVisibility(visible = isServerCard && adjustingId != null) {
                 IconButton(
                     modifier = Modifier.size(34.dp),
-                    onClick = onShowSettings
+                    onClick = { adjustingId?.let(onShowSettings) }
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_settings_filled),
                         contentDescription = stringResource(R.string.generic_setting)
                     )
                 }
+                Spacer(Modifier.width(2.dp))
             }
+
             IconButton(
                 modifier = Modifier.size(34.dp),
-                onClick = { state.removeCard(card.id) }
+                enabled = adjustingId != null,
+                onClick = { adjustingId?.let(state::removeCard) }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_delete_filled),
@@ -311,6 +336,9 @@ private fun CardToolbar(
                     contentDescription = stringResource(R.string.generic_delete)
                 )
             }
+
+            Spacer(Modifier.width(2.dp))
+
             IconButton(
                 modifier = Modifier.size(34.dp),
                 onClick = { state.exitAdjusting() }
@@ -320,6 +348,20 @@ private fun CardToolbar(
                     contentDescription = stringResource(R.string.generic_done)
                 )
             }
+        }
+    }
+}
+
+/**
+ * 消费落在自身范围内的全部指针事件
+ */
+private fun Modifier.barGuard(): Modifier = pointerInput(Unit) {
+    awaitEachGesture {
+        awaitFirstDown(requireUnconsumed = false).consume()
+        while (true) {
+            val event = awaitPointerEvent()
+            event.changes.forEach { it.consume() }
+            if (event.changes.none { it.pressed }) return@awaitEachGesture
         }
     }
 }
