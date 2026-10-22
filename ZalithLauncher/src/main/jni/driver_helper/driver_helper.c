@@ -93,13 +93,15 @@ void* loadCustomVulkan(const char* driver_lib, const char* driver_gpu, const cha
     }
 
     // Plugin folders usually only carry the driver itself, while liblinkerhook.so lives in the
-    // launcher's native dir, so expose both to the driver namespace.
+    // launcher's native dir, so expose both to the driver namespace. Vendor dirs are appended
+    // because the system libvulkan.so loader may depend on vendor libs (e.g. MediaTek libgpud_sys.so).
+    static const char* VENDOR_PATHS = "/vendor/lib64:/vendor/lib64/hw:/system_ext/lib64";
     char search_path[PATH_MAX * 2];
     const char* launcher_dir = getenv("POJAV_NATIVEDIR");
     if (launcher_dir && *launcher_dir && strcmp(launcher_dir, native_dir) != 0)
-        snprintf(search_path, sizeof(search_path), "%s:%s", native_dir, launcher_dir);
+        snprintf(search_path, sizeof(search_path), "%s:%s:%s", native_dir, launcher_dir, VENDOR_PATHS);
     else
-        snprintf(search_path, sizeof(search_path), "%s", native_dir);
+        snprintf(search_path, sizeof(search_path), "%s:%s", native_dir, VENDOR_PATHS);
 
     if (!linker_ns_load(search_path)) {
         printf("CustomDriver: linker_ns_load failed for %s\n", search_path);
