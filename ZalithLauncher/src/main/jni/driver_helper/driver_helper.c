@@ -13,7 +13,11 @@
 //#define ADRENO_POSSIBLE
 #ifdef ADRENO_POSSIBLE
 
-bool checkAdrenoGraphics() {
+bool checkDriverGpuFamily(const char* gpu) {
+    if (gpu && strcmp(gpu, "any") == 0)
+        return true;
+    bool want_mali = gpu && strcmp(gpu, "mali") == 0;
+
     EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if (eglDisplay == EGL_NO_DISPLAY || eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) 
         return false;
@@ -49,17 +53,26 @@ bool checkAdrenoGraphics() {
     const char* vendor = (const char*)glGetString(GL_VENDOR);
     const char* renderer = (const char*)glGetString(GL_RENDERER);
 
-    bool is_adreno = (vendor && renderer && strcmp(vendor, "Qualcomm") == 0 && strstr(renderer, "Adreno") != NULL);
+    bool matched;
+    if (want_mali)
+        matched = (renderer && strstr(renderer, "Mali") != NULL);
+    else
+        matched = (vendor && renderer && strcmp(vendor, "Qualcomm") == 0 && strstr(renderer, "Adreno") != NULL);
 
     eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglDestroyContext(eglDisplay, context);
     eglTerminate(eglDisplay);
 
-    return is_adreno;
+    return matched;
 }
 
-void* loadTurnipVulkan(const char* driver_path, const char* native_dir, const char* cache_dir) {
-    if (!checkAdrenoGraphics())
+/**
+ * Load a custom Vulkan driver (Turnip/panvk/...) through the linker namespace bypass.
+ * @param driver_lib driver library file name, NULL/empty falls back to libvulkan_freedreno.so
+ * @param driver_gpu GPU family gate: "adreno" (default), "mali" or "any"
+ */
+void* loadCustomVulkan(const char* driver_lib, const char* driver_gpu, const char* native_dir, const char* cache_dir) {
+    if (!checkDriverGpuFamily(driver_gpu))
         return NULL;
 
     if (!native_dir || !linker_ns_load(native_dir)) return NULL;
@@ -67,10 +80,10 @@ void* loadTurnipVulkan(const char* driver_path, const char* native_dir, const ch
     void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
     if (!linkerhook) return NULL;
 
-    const char* target_driver = (driver_path && strlen(driver_path) > 0) ? driver_path : "libvulkan_freedreno.so";
-    void* turnip_driver_handle = linker_ns_dlopen(target_driver, RTLD_LOCAL | RTLD_NOW);
+    const char* target_driver = (driver_lib && strlen(driver_lib) > 0) ? driver_lib : "libvulkan_freedreno.so";
+    void* driver_handle = linker_ns_dlopen(target_driver, RTLD_LOCAL | RTLD_NOW);
 
-    if (!turnip_driver_handle) {
+    if (!driver_handle) {
         dlclose(linkerhook);
         return NULL;
     }
@@ -78,7 +91,7 @@ void* loadTurnipVulkan(const char* driver_path, const char* native_dir, const ch
     void* dl_android = linker_ns_dlopen("libdl_android.so", RTLD_LOCAL | RTLD_LAZY);
     if (!dl_android) {
         dlclose(linkerhook);
-        dlclose(turnip_driver_handle);
+        dlclose(driver_handle);
         return NULL;
     }
 
@@ -88,17 +101,17 @@ void* loadTurnipVulkan(const char* driver_path, const char* native_dir, const ch
     if (!linkerhookPassHandles || !android_get_exported_namespace) {
         dlclose(dl_android);
         dlclose(linkerhook);
-        dlclose(turnip_driver_handle);
+        dlclose(driver_handle);
         return NULL;
     }
 
-    linkerhookPassHandles(turnip_driver_handle, android_dlopen_ext, android_get_exported_namespace);
+    linkerhookPassHandles(driver_handle, android_dlopen_ext, android_get_exported_namespace);
 
     void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", RTLD_LOCAL | RTLD_NOW);
     if (!libvulkan) {
         dlclose(dl_android);
         dlclose(linkerhook);
-        dlclose(turnip_driver_handle);
+        dlclose(driver_handle);
         return NULL;
     }
 
