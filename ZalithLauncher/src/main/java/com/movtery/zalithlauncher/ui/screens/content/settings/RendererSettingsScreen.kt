@@ -175,6 +175,39 @@ fun RendererSettingsScreen(
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.vulkanDriver,
+                        items = DriverPluginManager.getDriverList(),
+                        title = stringResource(R.string.settings_renderer_global_vulkan_driver_title),
+                        getItemText = { it.name },
+                        getItemId = { it.id },
+                        getItemSummary = {
+                            DriverSummaryLayout(it)
+                        },
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    eventViewModel.sendDLPlugin(
+                                        githubLink = URL_GITHUB_DRIVER_PLUGINS,
+                                        cloudDrives = listOf(
+                                            EventViewModel.Event.DownloadPlugins.CloudDrive(
+                                                language = "zh",
+                                                link = URL_CLOUD_DRIVE_DRIVER_PLUGINS
+                                            )
+                                        )
+                                    )
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_download_2_filled),
+                                    contentDescription = stringResource(R.string.generic_download)
+                                )
+                            }
+                        }
+                    )
+
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
                         unit = AllSettings.graphicsApi,
                         items = GraphicsApi.entries,
