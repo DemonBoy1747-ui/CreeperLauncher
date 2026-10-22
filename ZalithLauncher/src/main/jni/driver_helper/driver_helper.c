@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <limits.h>
 #include <dlfcn.h>
 #include <android/dlext.h>
 #include "nsbypass.h"
@@ -19,8 +21,10 @@ bool checkDriverGpuFamily(const char* gpu) {
     bool want_mali = gpu && strcmp(gpu, "mali") == 0;
 
     EGLDisplay eglDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (eglDisplay == EGL_NO_DISPLAY || eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) 
+    if (eglDisplay == EGL_NO_DISPLAY || eglInitialize(eglDisplay, NULL, NULL) != EGL_TRUE) {
+        printf("CustomDriver: GPU check failed: eglGetDisplay/eglInitialize (egl error 0x%x)\n", eglGetError());
         return false;
+    }
 
     EGLint egl_attributes[] = {
         EGL_BLUE_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_RED_SIZE, 8,
@@ -30,6 +34,7 @@ bool checkDriverGpuFamily(const char* gpu) {
 
     EGLint num_configs = 0;
     if (eglChooseConfig(eglDisplay, egl_attributes, NULL, 0, &num_configs) != EGL_TRUE || num_configs == 0) {
+        printf("CustomDriver: GPU check failed: no matching EGL config (egl error 0x%x)\n", eglGetError());
         eglTerminate(eglDisplay);
         return false;
     }
@@ -40,11 +45,13 @@ bool checkDriverGpuFamily(const char* gpu) {
     const EGLint egl_context_attributes[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
     EGLContext context = eglCreateContext(eglDisplay, eglConfig, EGL_NO_CONTEXT, egl_context_attributes);
     if (context == EGL_NO_CONTEXT) {
+        printf("CustomDriver: GPU check failed: eglCreateContext (egl error 0x%x)\n", eglGetError());
         eglTerminate(eglDisplay);
         return false;
     }
 
     if (eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, context) != EGL_TRUE) {
+        printf("CustomDriver: GPU check failed: eglMakeCurrent (egl error 0x%x)\n", eglGetError());
         eglDestroyContext(eglDisplay, context);
         eglTerminate(eglDisplay);
         return false;
@@ -58,6 +65,10 @@ bool checkDriverGpuFamily(const char* gpu) {
         matched = (renderer && strstr(renderer, "Mali") != NULL);
     else
         matched = (vendor && renderer && strcmp(vendor, "Qualcomm") == 0 && strstr(renderer, "Adreno") != NULL);
+
+    printf("CustomDriver: GPU check (want=%s) vendor=%s renderer=%s -> %s\n",
+           gpu ? gpu : "adreno", vendor ? vendor : "(null)", renderer ? renderer : "(null)",
+           matched ? "match" : "no match");
 
     eglMakeCurrent(eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
     eglDestroyContext(eglDisplay, context);
@@ -75,21 +86,44 @@ void* loadCustomVulkan(const char* driver_lib, const char* driver_gpu, const cha
     if (!checkDriverGpuFamily(driver_gpu))
         return NULL;
 
-    if (!native_dir || !linker_ns_load(native_dir)) return NULL;
+    if (!native_dir || !cache_dir) {
+        printf("CustomDriver: missing native_dir (%s) or cache_dir (%s)\n",
+               native_dir ? native_dir : "(null)", cache_dir ? cache_dir : "(null)");
+        return NULL;
+    }
+
+    // Plugin folders usually only carry the driver itself, while liblinkerhook.so lives in the
+    // launcher's native dir, so expose both to the driver namespace.
+    char search_path[PATH_MAX * 2];
+    const char* launcher_dir = getenv("POJAV_NATIVEDIR");
+    if (launcher_dir && *launcher_dir && strcmp(launcher_dir, native_dir) != 0)
+        snprintf(search_path, sizeof(search_path), "%s:%s", native_dir, launcher_dir);
+    else
+        snprintf(search_path, sizeof(search_path), "%s", native_dir);
+
+    if (!linker_ns_load(search_path)) {
+        printf("CustomDriver: linker_ns_load failed for %s\n", search_path);
+        return NULL;
+    }
 
     void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
-    if (!linkerhook) return NULL;
+    if (!linkerhook) {
+        printf("CustomDriver: dlopen liblinkerhook.so failed: %s\n", dlerror());
+        return NULL;
+    }
 
     const char* target_driver = (driver_lib && strlen(driver_lib) > 0) ? driver_lib : "libvulkan_freedreno.so";
     void* driver_handle = linker_ns_dlopen(target_driver, RTLD_LOCAL | RTLD_NOW);
 
     if (!driver_handle) {
+        printf("CustomDriver: dlopen %s failed: %s\n", target_driver, dlerror());
         dlclose(linkerhook);
         return NULL;
     }
 
     void* dl_android = linker_ns_dlopen("libdl_android.so", RTLD_LOCAL | RTLD_LAZY);
     if (!dl_android) {
+        printf("CustomDriver: dlopen libdl_android.so failed: %s\n", dlerror());
         dlclose(linkerhook);
         dlclose(driver_handle);
         return NULL;
@@ -99,6 +133,8 @@ void* loadCustomVulkan(const char* driver_lib, const char* driver_gpu, const cha
     void (*linkerhookPassHandles)(void*, void*, void*) = dlsym(linkerhook, "linker_hook_set_handles");
 
     if (!linkerhookPassHandles || !android_get_exported_namespace) {
+        printf("CustomDriver: missing symbols (linker_hook_set_handles=%p, android_get_exported_namespace=%p)\n",
+               (void*) linkerhookPassHandles, android_get_exported_namespace);
         dlclose(dl_android);
         dlclose(linkerhook);
         dlclose(driver_handle);
@@ -109,12 +145,14 @@ void* loadCustomVulkan(const char* driver_lib, const char* driver_gpu, const cha
 
     void* libvulkan = linker_ns_dlopen_unique(cache_dir, "libvulkan.so", RTLD_LOCAL | RTLD_NOW);
     if (!libvulkan) {
+        printf("CustomDriver: dlopen_unique libvulkan.so failed in %s: %s\n", cache_dir, dlerror());
         dlclose(dl_android);
         dlclose(linkerhook);
         dlclose(driver_handle);
         return NULL;
     }
 
+    printf("CustomDriver: %s loaded via linkerhook\n", target_driver);
     return libvulkan;
 }
 
