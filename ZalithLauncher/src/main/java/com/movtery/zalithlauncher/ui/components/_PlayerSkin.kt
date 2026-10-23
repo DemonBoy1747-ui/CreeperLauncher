@@ -23,6 +23,7 @@ import android.content.Context
 import android.util.Base64
 import android.util.Log
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.JsResult
@@ -268,6 +269,8 @@ fun SkinPreview3D(
     val context = LocalContext.current
     val playerSkin = remember { PlayerSkin(context) }
     var pageFinished by remember { mutableStateOf(false) }
+    //While a glass dialog is open the page is recorded into a layer; keep the WebView out of it
+    val hideForGlassRecording = isGlassPageRecording()
 
     DisposableEffect(Unit) {
         onDispose {
@@ -291,6 +294,7 @@ fun SkinPreview3D(
             },
             update = { container ->
                 container.gateOpen = interactionEnabled
+                container.visibility = if (hideForGlassRecording) View.INVISIBLE else View.VISIBLE
             }
         )
 
@@ -306,8 +310,16 @@ fun SkinPreview3D(
         LaunchedEffect(pageFinished, skinFile, capeFile, modelType, refreshKey) {
             if (!pageFinished) return@LaunchedEffect
             runCatching {
-                skinFile?.inputStream().use { playerSkin.loadSkin(it, modelType) }
-                capeFile?.inputStream().use { playerSkin.loadCape(it) }
+                if (skinFile != null && skinFile.exists()) {
+                    skinFile.inputStream().use { playerSkin.loadSkin(it, modelType) }
+                } else {
+                    playerSkin.loadSkin(inputStream = null, modelType)
+                }
+                if (capeFile != null && capeFile.exists()) {
+                    capeFile.inputStream().use { playerSkin.loadCape(it) }
+                } else {
+                    playerSkin.loadCape(inputStream = null)
+                }
             }
         }
 

@@ -584,6 +584,7 @@ private fun ActionMenuTallerContent(
             modelType = account?.skinModelType,
             interactionEnabled = false,
             azimuth = azimuth,
+            refreshKey = listOf(account?.uniqueUUID, refreshWardrobe, skinFile?.lastModified() ?: 0L, capeFile?.lastModified() ?: 0L)
         )
 
         BackgroundCard(

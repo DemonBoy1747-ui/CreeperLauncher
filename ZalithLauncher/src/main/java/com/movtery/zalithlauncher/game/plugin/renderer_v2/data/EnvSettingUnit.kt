@@ -28,18 +28,19 @@ import com.movtery.zalithlauncher.setting.unit.AbstractSettingUnit
  * @param title 该配置项的标题文本，由插件提供
  */
 sealed class EnvSettingUnit(
-    mmkvKey: String,
+    envKey: String,
     defaultValue: String,
     val title: String?,
-) : AbstractSettingUnit<String>(mmkvKey, defaultValue) {
+    protected val storage: EnvStorageScope,
+) : AbstractSettingUnit<String>(envKey, defaultValue) {
 
     override fun getValue(): String {
-        return rendererEnvMMKV().getString(key, defaultValue)!!
+        return storage.getValue(key, defaultValue)
             .also { state = it }
     }
 
     override fun saveValue(v: String): String {
-        rendererEnvMMKV().putString(key, v).apply()
+        storage.putValue(key, v)
         return v
     }
 
@@ -49,14 +50,12 @@ sealed class EnvSettingUnit(
      * @param values 所有可选值（含默认值）
      */
     class Selectable(
-        mmkvKey: String,
         val rawEnv: RendererConfig.Env.SelectableEnv,
         defaultValue: String,
         val values: List<String>,
         title: String? = null,
-    ) : EnvSettingUnit(mmkvKey, defaultValue, title) {
-        private val checkKey = "${mmkvKey}:check"
-
+        storage: EnvStorageScope,
+    ) : EnvSettingUnit(rawEnv.key, defaultValue, title, storage) {
         /**
          * 当前是否启用此环境变量
          */
@@ -64,21 +63,18 @@ sealed class EnvSettingUnit(
             private set
 
         fun initCheck() {
-            val mmkv = rendererEnvMMKV()
             val pluginDefault = rawEnv.check != false
 
-            if (rawEnv.check == null) {
-                isEnabled = true
-            } else if (mmkv.containsKey(checkKey)) {
-                isEnabled = mmkv.getBoolean(checkKey, pluginDefault)
+            isEnabled = if (rawEnv.check == null) {
+                true
             } else {
-                isEnabled = pluginDefault
+                storage.getCheck(key, pluginDefault)
             }
         }
 
         fun saveCheck(enabled: Boolean) {
             isEnabled = enabled
-            rendererEnvMMKV().putBoolean(checkKey, enabled).apply()
+            storage.putCheck(key, enabled)
         }
     }
 
@@ -87,11 +83,11 @@ sealed class EnvSettingUnit(
      * @param rawEnv 原始环境变量配置
      */
     class Customizable(
-        mmkvKey: String,
         val rawEnv: RendererConfig.Env.CustomizableEnv,
         defaultValue: String,
         title: String? = null,
-    ) : EnvSettingUnit(mmkvKey, defaultValue, title)
+        storage: EnvStorageScope,
+    ) : EnvSettingUnit(rawEnv.key, defaultValue, title, storage)
 
     /**
      * 开关式环境变量：启用/禁用该环境变量
@@ -100,12 +96,12 @@ sealed class EnvSettingUnit(
      * @param envValue 该环境变量的实际值（toggle=true 时使用）
      */
     class Toggleable(
-        mmkvKey: String,
         val rawEnv: RendererConfig.Env.ToggleableEnv,
         defaultValue: String,
         val envValue: String,
         title: String? = null,
-    ) : EnvSettingUnit(mmkvKey, defaultValue, title) {
+        storage: EnvStorageScope,
+    ) : EnvSettingUnit(rawEnv.key, defaultValue, title, storage) {
         /** 当前开关是否启用 */
         val isEnabled: Boolean get() = state.isNotEmpty()
     }
