@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -197,6 +198,13 @@ private class DialogWindowBackdrop(
 
     /** Read in [readSamplingState] so glass nodes redraw whenever a new snapshot arrives. */
     private var snapshotVersion by mutableIntStateOf(0)
+
+    /**
+     * Reads the snapshot counter. [LiquidGlassSurface] calls this from a draw modifier inside the
+     * glass, so the glass re-records every time a new snapshot arrives, exactly like a glass that
+     * contains an animation does. Relying only on [readSamplingState] left most panels frozen.
+     */
+    fun readFrame(): Int = snapshotVersion
 
     /** Latest copy of the launcher window; its top-left is at ([left], [top]) in screen pixels. */
     fun publishSnapshot(image: ImageBitmap, left: Int, top: Int, width: Int, height: Int) {
@@ -452,6 +460,12 @@ fun LiquidGlassSurface(
             Color.Unspecified
         }
     ) {
+        //Inside a dialog window the glass must redraw for every new backdrop snapshot. Reading the
+        //counter in a draw modifier of a child invalidates this glass' layer, as an animated child does.
+        val liveBackdrop = backdrop as? DialogWindowBackdrop
+        if (liveBackdrop != null) {
+            Box(modifier = Modifier.matchParentSize().drawBehind { liveBackdrop.readFrame() })
+        }
         CompositionLocalProvider(LocalContentColor provides contentColor) {
             content()
         }
