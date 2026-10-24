@@ -87,6 +87,7 @@ import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.ButtonPosition
 import com.movtery.zalithlauncher.ui.components.LocalLiquidGlassBackdrop
+import com.movtery.zalithlauncher.ui.components.LocalLiquidGlassPage
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.PositionButton
 import com.movtery.zalithlauncher.ui.components.PositionFilledTonalButton
@@ -555,6 +556,7 @@ fun Background(
     val layerCapture = !backgroundMode && blur > 0 && opacity < 100 && viewModel.isValid
     val density = LocalDensity.current
     val glassBackdrop = LocalLiquidGlassBackdrop.current
+    val glassPage = LocalLiquidGlassPage.current
 
     Box(
         modifier = modifier
@@ -570,6 +572,18 @@ fun Background(
                 recordContent = layerCapture,
                 blurRadiusPx = blur * density.density,
                 whiteOverlayAlpha = if (backgroundBlurEnabled) whiteOverlayAlpha(blur) else 0f
+            )
+            .then(
+                //Liquid Glass: while a dialog is open over a video wallpaper, GlassDialog bumps this
+                //tick every frame. Reading it here keeps the launcher window redrawing (and the glass
+                //layer re-recorded) so the video does not freeze behind the dialog
+                if (glassPage != null && viewModel.isVideo) {
+                    Modifier.drawBehind {
+                        glassPage.videoFrameTick
+                    }
+                } else {
+                    Modifier
+                }
             )
             .then(
                 //Liquid Glass：把背景内容录制进共享图层，供玻璃组件采样

@@ -47,6 +47,7 @@ import android.content.ContextWrapper
 import android.graphics.Bitmap
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.PixelCopy
 import android.view.Window
 import android.view.WindowManager
@@ -90,6 +91,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
 
 /**
@@ -126,6 +128,12 @@ class GlassPageCapture(val layer: PrismalGlassLayer) {
 
     /** Screen position of the captured page's top-left corner. */
     var originOnScreen by mutableStateOf(Offset.Zero)
+
+    /**
+     * Bumped every frame while a [GlassDialog] is open over a video wallpaper. The wallpaper reads
+     * it while drawing, which makes the launcher window redraw every frame (see [GlassDialog]).
+     */
+    var videoFrameTick by mutableIntStateOf(0)
 }
 
 /** Provided by the theme in activities that show a launcher page. Null elsewhere. */
@@ -247,22 +255,35 @@ private tailrec fun Context.findHostWindow(): Window? = when (this) {
     else -> null
 }
 
-/** Copies [window] (scaled to the size of [target]) into [target]. True when the copy succeeded. */
-private suspend fun copyWindowInto(window: Window, target: Bitmap, handler: Handler): Boolean =
-    suspendCancellableCoroutine { continuation ->
-        try {
-            PixelCopy.request(
-                window,
-                target,
-                PixelCopy.OnPixelCopyFinishedListener { result ->
-                    if (continuation.isActive) continuation.resume(result == PixelCopy.SUCCESS)
-                },
-                handler
-            )
-        } catch (_: Exception) {
-            if (continuation.isActive) continuation.resume(false)
+private const val TAG = "GlassDialog"
+
+/** A copy that takes longer than this is abandoned so the capture loop can never stall. */
+private const val SNAPSHOT_TIMEOUT_MS = 500L
+
+private const val COPY_EXCEPTION = -1
+private const val COPY_TIMEOUT = -2
+
+/**
+ * Copies [window] (scaled to the size of [target]) into [target].
+ * Returns a [PixelCopy] result code, [COPY_EXCEPTION] or [COPY_TIMEOUT].
+ */
+private suspend fun copyWindowInto(window: Window, target: Bitmap, handler: Handler): Int =
+    withTimeoutOrNull(SNAPSHOT_TIMEOUT_MS) {
+        suspendCancellableCoroutine<Int> { continuation ->
+            try {
+                PixelCopy.request(
+                    window,
+                    target,
+                    PixelCopy.OnPixelCopyFinishedListener { result ->
+                        if (continuation.isActive) continuation.resume(result)
+                    },
+                    handler
+                )
+            } catch (_: Exception) {
+                if (continuation.isActive) continuation.resume(COPY_EXCEPTION)
+            }
         }
-    }
+    } ?: COPY_TIMEOUT
 
 /**
  * Keeps [sampler] supplied with fresh copies of the launcher [window] until cancelled.
@@ -274,6 +295,7 @@ private suspend fun captureWindowSnapshots(window: Window, sampler: DialogWindow
     var shown: Bitmap? = null
     var spare: Bitmap? = null
     var lastStartNanos = 0L
+    var lastFailure = PixelCopy.SUCCESS
     while (true) {
         val now = withFrameNanos { it }
         if (now - lastStartNanos < SNAPSHOT_MIN_INTERVAL_NANOS) continue
@@ -288,7 +310,14 @@ private suspend fun captureWindowSnapshots(window: Window, sampler: DialogWindow
             ?: Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
 
         lastStartNanos = now
-        if (!copyWindowInto(window, target, handler)) continue
+        val result = copyWindowInto(window, target, handler)
+        if (result != PixelCopy.SUCCESS) {
+            //Log only when the failure code changes, so a persistent failure does not flood logcat
+            if (result != lastFailure) Log.w(TAG, "Window snapshot failed, code=$result")
+            lastFailure = result
+            continue
+        }
+        lastFailure = PixelCopy.SUCCESS
 
         decor.getLocationOnScreen(location)
         sampler.publishSnapshot(target.asImageBitmap(), location[0], location[1], width, height)
@@ -331,6 +360,17 @@ fun GlassDialog(
     if (videoBehindDialog && hostWindow != null) {
         LaunchedEffect(sampler, hostWindow) {
             captureWindowSnapshots(hostWindow, sampler)
+        }
+    }
+    //The launcher window must keep drawing while a dialog covers it, otherwise it stops producing
+    //new frames of the video and every copy of it (snapshot or shared layer) goes stale. Screens that
+    //animate on their own (the account page's 3D skin WebView) hide this problem, others do not.
+    if (videoBehindDialog && page != null) {
+        LaunchedEffect(page) {
+            while (true) {
+                withFrameNanos { }
+                page.videoFrameTick++
+            }
         }
     }
 
