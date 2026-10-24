@@ -72,7 +72,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.ray.launcher.lite.test272"
+        applicationId = "com.ray.launcher.lite"
         minSdk = 26
         targetSdk = 34
         versionCode = launcherVersionCode
