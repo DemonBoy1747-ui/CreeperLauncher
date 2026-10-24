@@ -42,7 +42,9 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,10 +66,12 @@ import com.styropyr0.prismal.PrismalBackdrop
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
 import com.styropyr0.prismal.PrismalGlassSurface
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -148,9 +152,20 @@ private class DialogWindowBackdrop(
 
     override val isCoordinatesDependent: Boolean = true
 
+    /**
+     * Bumped once per frame by [GlassDialog] while a video wallpaper is playing.
+     *
+     * A glass node only re-records its sampled copy of the wallpaper layer when its own draw is
+     * invalidated. In the main window a new video frame redraws everything, but a dialog is a
+     * separate window that nobody invalidates, so the video would freeze behind the glass.
+     * Reading this in [readSamplingState] makes every glass node in the dialog redraw per tick.
+     */
+    var frameTick by mutableIntStateOf(0)
+
     override fun readSamplingState() {
         source.readSamplingState()
         page?.originOnScreen
+        frameTick
     }
 
     override fun DrawScope.drawPrismalGlass(
@@ -192,6 +207,18 @@ fun GlassDialog(
     }
     val sampler = remember(record, page) {
         DialogWindowBackdrop(if (RECORD_PAGE_BEHIND_DIALOGS) page?.layer ?: record else record, page)
+    }
+
+    //Keep glass in this dialog window redrawing while a video wallpaper plays behind it
+    val background = LocalBackgroundViewModel.current
+    val videoBehindDialog = background != null && background.isValid && background.isVideo
+    if (videoBehindDialog) {
+        LaunchedEffect(sampler) {
+            while (isActive) {
+                withFrameNanos { }
+                sampler.frameTick++
+            }
+        }
     }
 
     Dialog(onDismissRequest = onDismissRequest, properties = properties) {
