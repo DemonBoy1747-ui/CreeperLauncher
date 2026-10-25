@@ -2,6 +2,15 @@ name: Build APK
 
 on:
   workflow_dispatch:
+    inputs:
+      variant:
+        description: Build variant
+        required: true
+        type: choice
+        options:
+          - Release
+          - Debug
+        default: Release
   workflow_call:
     inputs:
       variant:
@@ -35,6 +44,7 @@ jobs:
       fail-fast: false
 
     env:
+      BUILD_VARIANT: ${{ inputs.variant || 'Release' }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
@@ -68,7 +78,7 @@ jobs:
       - name: Build APK for arm64-v8a
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=arm64
+          ./gradlew ZalithLauncher:assemble${{ env.BUILD_VARIANT }} -Darch=arm64
 
       - name: Rename APK with branch and build date
         shell: bash
@@ -96,7 +106,7 @@ jobs:
           echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> "$GITHUB_ENV"
 
       - name: Upload Release APK for arm64-v8a
-        if: inputs.variant == 'Release'
+        if: env.BUILD_VARIANT == 'Release'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
@@ -111,7 +121,7 @@ jobs:
           path: ZalithLauncher/build/outputs/mapping/release/mapping.txt
 
       - name: Upload Debug APK for arm64-v8a
-        if: inputs.variant == 'Debug'
+        if: env.BUILD_VARIANT == 'Debug'
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
