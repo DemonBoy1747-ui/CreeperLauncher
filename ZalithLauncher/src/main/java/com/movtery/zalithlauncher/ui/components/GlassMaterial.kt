@@ -70,15 +70,20 @@ import androidx.compose.ui.unit.dp
 
 private const val DISABLED_ALPHA = 0.38f
 
-/** Glass tint for a button, given its Material colors. White instead of the primary color. */
+/**
+ * Glass tint for a button, given its Material colors. Every button uses the same neutral surface
+ * tint (like list items and the launcher's action buttons) instead of the primary color. A white
+ * tint for filled buttons made Cancel/Close in dialogs look brighter than everything around them.
+ * [tonal] is kept for callers but no longer changes the tint.
+ */
 @Composable
+@Suppress("UNUSED_PARAMETER")
 internal fun glassButtonTint(colors: ButtonColors, enabled: Boolean, tonal: Boolean): Color {
     val container = if (enabled) colors.containerColor else colors.disabledContainerColor
     val error = MaterialTheme.colorScheme.error
     return when {
         container == error || container == MaterialTheme.colorScheme.errorContainer -> container
-        tonal -> MaterialTheme.colorScheme.surface
-        else -> Color.White
+        else -> MaterialTheme.colorScheme.surface
     }
 }
 
