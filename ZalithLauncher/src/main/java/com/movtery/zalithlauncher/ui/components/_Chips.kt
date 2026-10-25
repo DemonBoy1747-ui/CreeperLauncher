@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import com.movtery.zalithlauncher.ui.theme.itemColor
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -69,7 +70,7 @@ fun CheckChip(
             backdrop = glassBackdrop,
             shape = MaterialTheme.shapes.large,
             modifier = modifier.alpha(if (enabled) 1f else 0.5f),
-            containerColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+            containerColor = if (selected) MaterialTheme.colorScheme.primary else itemColor(),
             contentColor = Color.White,
             onClick = if (enabled) onClick else null
         ) {

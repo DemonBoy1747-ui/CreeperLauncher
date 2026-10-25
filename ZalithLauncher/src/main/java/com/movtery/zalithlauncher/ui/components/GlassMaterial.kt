@@ -55,6 +55,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.unit.dp
+import com.movtery.zalithlauncher.ui.theme.itemColor
 
 /*
  * Drop-in replacements for the Material3 Button / Surface / Card / IconButton family.
@@ -70,15 +71,20 @@ import androidx.compose.ui.unit.dp
 
 private const val DISABLED_ALPHA = 0.38f
 
-/** Glass tint for a button, given its Material colors. White instead of the primary color. */
+/**
+ * Glass tint for a button, given its Material colors. Every button uses the item tint, the same
+ * one list items use (see the About page), so Cancel/Close in dialogs match the rows around them
+ * instead of looking brighter (white) or darker (plain surface). Error buttons keep their color.
+ * [tonal] is kept for callers but no longer changes the tint.
+ */
 @Composable
+@Suppress("UNUSED_PARAMETER")
 internal fun glassButtonTint(colors: ButtonColors, enabled: Boolean, tonal: Boolean): Color {
     val container = if (enabled) colors.containerColor else colors.disabledContainerColor
     val error = MaterialTheme.colorScheme.error
     return when {
         container == error || container == MaterialTheme.colorScheme.errorContainer -> container
-        tonal -> MaterialTheme.colorScheme.surface
-        else -> Color.White
+        else -> itemColor()
     }
 }
 
