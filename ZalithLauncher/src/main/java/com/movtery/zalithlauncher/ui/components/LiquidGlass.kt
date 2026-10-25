@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -41,8 +42,28 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.graphics.Bitmap
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.PixelCopy
+import android.view.Window
+import android.view.WindowManager
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -64,11 +85,15 @@ import com.styropyr0.prismal.PrismalBackdrop
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
 import com.styropyr0.prismal.PrismalGlassSurface
 import com.styropyr0.prismal.sources.PrismalGlassLayer
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.coroutines.resume
 
 /**
  * Liquid Glass (PrismalAGSL) 采样的背景图层。
@@ -139,6 +164,14 @@ fun isGlassPageRecording(): Boolean = LocalLiquidGlassPage.current?.recording ==
  * `layerCoordinates.localPositionOf(glass)` cannot relate the glass to the recorded layer and falls
  * back to a window-relative offset of about (0, 0): the glass then shows the top-left of the layer.
  * This sampler measures the glass on screen instead and subtracts the layer's screen origin.
+ *
+ * Two more corrections are made here:
+ *  - Video wallpaper: the recorded layer is shared between windows and does not follow the video
+ *    decoder, so the glass in a dialog showed a frozen frame. While a video plays, [GlassDialog]
+ *    copies the launcher window (video + panels, without the dialog) into a small bitmap a few
+ *    times per second ([publishSnapshot]) and that bitmap is drawn instead of the layer.
+ *  - Scrim: the dialog's dim scrim darkens everything around the dialog but not the dialog
+ *    itself, which made the glass look too bright. [dimAlpha] darkens the sampled backdrop to match.
  */
 @Stable
 private class DialogWindowBackdrop(
@@ -148,9 +181,39 @@ private class DialogWindowBackdrop(
 
     override val isCoordinatesDependent: Boolean = true
 
+    /** Alpha of the dialog window's dim scrim, drawn over the sampled backdrop. */
+    var dimAlpha: Float = 0f
+
+    private var snapshot: ImageBitmap? = null
+    private var snapshotLeft = 0
+    private var snapshotTop = 0
+    private var snapshotWidth = 0
+    private var snapshotHeight = 0
+
+    /** Read in [readSamplingState] so glass nodes redraw whenever a new snapshot arrives. */
+    private var snapshotVersion by mutableIntStateOf(0)
+
+    /**
+     * Reads the snapshot counter. [LiquidGlassSurface] calls this from a draw modifier inside the
+     * glass, so the glass re-records every time a new snapshot arrives, exactly like a glass that
+     * contains an animation does. Relying only on [readSamplingState] left most panels frozen.
+     */
+    fun readFrame(): Int = snapshotVersion
+
+    /** Latest copy of the launcher window; its top-left is at ([left], [top]) in screen pixels. */
+    fun publishSnapshot(image: ImageBitmap, left: Int, top: Int, width: Int, height: Int) {
+        snapshot = image
+        snapshotLeft = left
+        snapshotTop = top
+        snapshotWidth = width
+        snapshotHeight = height
+        snapshotVersion++
+    }
+
     override fun readSamplingState() {
         source.readSamplingState()
         page?.originOnScreen
+        snapshotVersion
     }
 
     override fun DrawScope.drawPrismalGlass(
@@ -160,10 +223,108 @@ private class DialogWindowBackdrop(
     ) {
         val glass = coordinates ?: return
         if (!glass.isAttached) return
-        val offset = glass.localToScreen(Offset.Zero) - (page?.originOnScreen ?: Offset.Zero)
-        withTransform({ translate(-offset.x, -offset.y) }) {
-            drawLayer(source.graphicsLayer)
+        val glassOnScreen = glass.localToScreen(Offset.Zero)
+        val image = snapshot
+        if (image != null) {
+            withTransform({
+                translate(snapshotLeft - glassOnScreen.x, snapshotTop - glassOnScreen.y)
+            }) {
+                drawImage(
+                    image = image,
+                    dstSize = IntSize(snapshotWidth, snapshotHeight),
+                    filterQuality = FilterQuality.Low
+                )
+            }
+        } else {
+            val offset = glassOnScreen - (page?.originOnScreen ?: Offset.Zero)
+            withTransform({ translate(-offset.x, -offset.y) }) {
+                drawLayer(source.graphicsLayer)
+            }
         }
+        if (dimAlpha > 0f) drawRect(Color.Black.copy(alpha = dimAlpha))
+    }
+}
+
+/** The launcher window is copied at 1/4 size: plenty for glass that is blurred anyway. */
+private const val SNAPSHOT_DOWNSCALE = 4
+
+/** At most ~30 snapshots per second. */
+private const val SNAPSHOT_MIN_INTERVAL_NANOS = 30_000_000L
+
+private tailrec fun Context.findHostWindow(): Window? = when (this) {
+    is Activity -> window
+    is ContextWrapper -> baseContext.findHostWindow()
+    else -> null
+}
+
+private const val TAG = "GlassDialog"
+
+/** A copy that takes longer than this is abandoned so the capture loop can never stall. */
+private const val SNAPSHOT_TIMEOUT_MS = 500L
+
+private const val COPY_EXCEPTION = -1
+private const val COPY_TIMEOUT = -2
+
+/**
+ * Copies [window] (scaled to the size of [target]) into [target].
+ * Returns a [PixelCopy] result code, [COPY_EXCEPTION] or [COPY_TIMEOUT].
+ */
+private suspend fun copyWindowInto(window: Window, target: Bitmap, handler: Handler): Int =
+    withTimeoutOrNull(SNAPSHOT_TIMEOUT_MS) {
+        suspendCancellableCoroutine<Int> { continuation ->
+            try {
+                PixelCopy.request(
+                    window,
+                    target,
+                    PixelCopy.OnPixelCopyFinishedListener { result ->
+                        if (continuation.isActive) continuation.resume(result)
+                    },
+                    handler
+                )
+            } catch (_: Exception) {
+                if (continuation.isActive) continuation.resume(COPY_EXCEPTION)
+            }
+        }
+    } ?: COPY_TIMEOUT
+
+/**
+ * Keeps [sampler] supplied with fresh copies of the launcher [window] until cancelled.
+ * Two bitmaps alternate so the one being drawn is never the one being written.
+ */
+private suspend fun captureWindowSnapshots(window: Window, sampler: DialogWindowBackdrop) {
+    val handler = Handler(Looper.getMainLooper())
+    val location = IntArray(2)
+    var shown: Bitmap? = null
+    var spare: Bitmap? = null
+    var lastStartNanos = 0L
+    var lastFailure = PixelCopy.SUCCESS
+    while (true) {
+        val now = withFrameNanos { it }
+        if (now - lastStartNanos < SNAPSHOT_MIN_INTERVAL_NANOS) continue
+        val decor = window.peekDecorView() ?: continue
+        val width = decor.width
+        val height = decor.height
+        if (width <= 0 || height <= 0 || !decor.isAttachedToWindow) continue
+
+        val bitmapWidth = (width / SNAPSHOT_DOWNSCALE).coerceAtLeast(1)
+        val bitmapHeight = (height / SNAPSHOT_DOWNSCALE).coerceAtLeast(1)
+        val target = spare?.takeIf { it.width == bitmapWidth && it.height == bitmapHeight }
+            ?: Bitmap.createBitmap(bitmapWidth, bitmapHeight, Bitmap.Config.ARGB_8888)
+
+        lastStartNanos = now
+        val result = copyWindowInto(window, target, handler)
+        if (result != PixelCopy.SUCCESS) {
+            //Log only when the failure code changes, so a persistent failure does not flood logcat
+            if (result != lastFailure) Log.w(TAG, "Window snapshot failed, code=$result")
+            lastFailure = result
+            continue
+        }
+        lastFailure = PixelCopy.SUCCESS
+
+        decor.getLocationOnScreen(location)
+        sampler.publishSnapshot(target.asImageBitmap(), location[0], location[1], width, height)
+        spare = shown
+        shown = target
     }
 }
 
@@ -194,7 +355,30 @@ fun GlassDialog(
         DialogWindowBackdrop(if (RECORD_PAGE_BEHIND_DIALOGS) page?.layer ?: record else record, page)
     }
 
+    //Video wallpaper: sample live copies of the launcher window instead of the shared layer
+    val background = LocalBackgroundViewModel.current
+    val videoBehindDialog = background != null && background.isValid && background.isVideo
+    val hostWindow = LocalContext.current.findHostWindow()
+    if (videoBehindDialog && hostWindow != null) {
+        LaunchedEffect(sampler, hostWindow) {
+            captureWindowSnapshots(hostWindow, sampler)
+        }
+    }
+
     Dialog(onDismissRequest = onDismissRequest, properties = properties) {
+        //Match the scrim the system draws behind this dialog (the glass itself is not dimmed by it)
+        val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+        val dim = remember(dialogWindow) {
+            dialogWindow?.attributes?.let { attributes ->
+                if (attributes.flags and WindowManager.LayoutParams.FLAG_DIM_BEHIND != 0) {
+                    attributes.dimAmount
+                } else {
+                    0f
+                }
+            } ?: 0f
+        }
+        SideEffect { sampler.dimAlpha = dim }
+
         CompositionLocalProvider(LocalLiquidGlassSampler provides sampler) {
             content()
         }
@@ -259,6 +443,12 @@ fun LiquidGlassSurface(
             Color.Unspecified
         }
     ) {
+        //Inside a dialog window the glass must redraw for every new backdrop snapshot. Reading the
+        //counter in a draw modifier of a child invalidates this glass' layer, as an animated child does.
+        val liveBackdrop = backdrop as? DialogWindowBackdrop
+        if (liveBackdrop != null) {
+            Box(modifier = Modifier.matchParentSize().drawBehind { liveBackdrop.readFrame() })
+        }
         CompositionLocalProvider(LocalContentColor provides contentColor) {
             content()
         }
