@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import com.movtery.zalithlauncher.ui.theme.itemColor
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -113,9 +114,9 @@ fun DefaultSwitch(
                     .align(Alignment.Center)
                     .width(52.dp)
                     .height(32.dp),
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = itemColor(),
                 contentColor = Color.White,
-                blurRadius = 6.dp
+                blurRadius = 8.dp
             ) {}
             switchContent()
         }

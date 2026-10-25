@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
 import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
+import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.utils.math.addBigDecimal
 import com.movtery.zalithlauncher.utils.math.subtractBigDecimal
 import java.text.DecimalFormat
@@ -188,9 +189,9 @@ fun SimpleTextSlider(
                 backdrop = backdrop,
                 shape = MaterialTheme.shapes.medium,
                 modifier = valueModifier,
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = itemColor(),
                 contentColor = Color.White,
-                blurRadius = 6.dp
+                blurRadius = 8.dp
             ) { valueContent() }
         } else {
             Surface(
@@ -249,7 +250,7 @@ private fun GlassSliderTrack(
                     .fillMaxWidth()
                     .height(GlassSliderHeight)
                     .then(press?.visual ?: Modifier),
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = itemColor(),
                 contentColor = Color.White,
                 blurRadius = 8.dp
             ) {}
