@@ -129,12 +129,6 @@ class GlassPageCapture(val layer: PrismalGlassLayer) {
 
     /** Screen position of the captured page's top-left corner. */
     var originOnScreen by mutableStateOf(Offset.Zero)
-
-    /**
-     * Bumped every frame while a [GlassDialog] is open over a video wallpaper. The wallpaper reads
-     * it while drawing, which makes the launcher window redraw every frame (see [GlassDialog]).
-     */
-    var videoFrameTick by mutableIntStateOf(0)
 }
 
 /** Provided by the theme in activities that show a launcher page. Null elsewhere. */
@@ -368,17 +362,6 @@ fun GlassDialog(
     if (videoBehindDialog && hostWindow != null) {
         LaunchedEffect(sampler, hostWindow) {
             captureWindowSnapshots(hostWindow, sampler)
-        }
-    }
-    //The launcher window must keep drawing while a dialog covers it, otherwise it stops producing
-    //new frames of the video and every copy of it (snapshot or shared layer) goes stale. Screens that
-    //animate on their own (the account page's 3D skin WebView) hide this problem, others do not.
-    if (videoBehindDialog && page != null) {
-        LaunchedEffect(page) {
-            while (true) {
-                withFrameNanos { }
-                page.videoFrameTick++
-            }
         }
     }
 
