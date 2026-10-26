@@ -39,7 +39,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import com.movtery.zalithlauncher.ui.components.AlertDialog
 import com.movtery.zalithlauncher.ui.components.Button
-import androidx.compose.material3.DropdownMenu
+import com.movtery.zalithlauncher.ui.components.GlassDropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import com.movtery.zalithlauncher.ui.components.IconButton
@@ -223,7 +223,7 @@ fun GamePathItemLayout(
                     )
                 }
 
-                DropdownMenu(
+                GlassDropdownMenu(
                     expanded = menuExpanded,
                     shape = MaterialTheme.shapes.large,
                     shadowElevation = 3.dp,
@@ -815,7 +815,7 @@ fun VersionItemLayout(
                     )
                 }
 
-                DropdownMenu(
+                GlassDropdownMenu(
                     expanded = menuExpanded,
                     shape = MaterialTheme.shapes.large,
                     shadowElevation = 3.dp,
