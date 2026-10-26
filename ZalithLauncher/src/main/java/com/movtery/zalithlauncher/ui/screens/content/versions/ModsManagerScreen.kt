@@ -55,7 +55,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
+import com.movtery.zalithlauncher.ui.components.GlassDropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -836,7 +836,7 @@ private fun ModsActionsHeader(
                             contentDescription = stringResource(R.string.mods_update_task_filter)
                         )
                     }
-                    DropdownMenu(
+                    GlassDropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
                         shape = MaterialTheme.shapes.large
