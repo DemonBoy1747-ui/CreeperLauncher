@@ -1332,6 +1332,8 @@ fun ChangeSkinDialog(
     //offline accounts: cape collection dialog and a key that reloads the preview after changes
     var showLocalCapeDialog by remember { mutableStateOf(false) }
     var localCapeKey by remember { mutableIntStateOf(0) }
+    //offline cape changes are saved immediately, remember it so Confirm can close the dialog
+    var localCapeChanged by remember { mutableStateOf(false) }
 
     var isFetchingCapes by remember { mutableStateOf(false) }
 
@@ -1421,12 +1423,15 @@ fun ChangeSkinDialog(
                         modifier = Modifier.weight(1f),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Box(
+                        Surface(
                             modifier = Modifier
                                 .fillMaxHeight()
-                                .weight(1f)
-                                .clip(MaterialTheme.shapes.large)
-                                .background(itemColor(false)),
+                                .weight(1f),
+                            shape = MaterialTheme.shapes.large,
+                            color = itemColor(false)
+                        ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             var pageFinished by remember { mutableStateOf(false) }
@@ -1510,6 +1515,7 @@ fun ChangeSkinDialog(
                                 }
                             }
                         }
+                        }
 
                         Column(
                             modifier = Modifier
@@ -1539,7 +1545,7 @@ fun ChangeSkinDialog(
                                             }
                                         },
                                         onClick = {
-                                            skinPicker.launch(arrayOf("image/png"))
+                                            skinPicker.launch(arrayOf("image/*"))
                                         },
                                         enabled = !isImportingSkin
                                     )
@@ -1669,7 +1675,7 @@ fun ChangeSkinDialog(
 
                         Button(
                             modifier = Modifier.weight(1f),
-                            enabled = skinState != ChangeSkin.None || capeState != ChangeCape.None,
+                            enabled = skinState != ChangeSkin.None || capeState != ChangeCape.None || localCapeChanged,
                             onClick = {
                                 when (skinState) {
                                     is ChangeSkin.ChangeSkinData -> {
@@ -1704,6 +1710,7 @@ fun ChangeSkinDialog(
             onDismiss = { showLocalCapeDialog = false },
             onCapeChanged = {
                 localCapeKey++
+                localCapeChanged = true
                 AccountsManager.refreshWardrobe()
             }
         )

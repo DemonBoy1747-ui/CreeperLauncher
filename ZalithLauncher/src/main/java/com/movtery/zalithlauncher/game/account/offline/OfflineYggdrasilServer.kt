@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.game.account.offline
 
 import com.movtery.zalithlauncher.BuildKeys
-import com.movtery.zalithlauncher.bridge.LoggerBridge
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.wardrobe.SkinModelType
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -71,12 +70,6 @@ class OfflineYggdrasilServer(
     val implementationName: String = BuildKeys.LAUNCHER_SHORT_NAME,
     val implementationVersion: String = "1.0"
 ) {
-    /** Log to the launcher log and the in-game log, so texture problems can be diagnosed from one place */
-    private fun diag(msg: String) {
-        Logger.info(TAG, msg)
-        LoggerBridge.append("[OfflineYggdrasil] $msg")
-    }
-
     private val charactersByUuid = ConcurrentHashMap<String, Character>()
     private val charactersByName = ConcurrentHashMap<String, Character>()
     private val keyPair: KeyPair = KeyPairGenerator.getInstance("RSA").apply {
@@ -196,7 +189,7 @@ class OfflineYggdrasilServer(
         charactersByUuid[character.uuid.lowercase()] = character
         charactersByName[character.name.lowercase()] = character
 
-        diag("Added character ${character.name} (${character.uuid}), skin hash = ${character.skin?.skinHash}, cape hash = ${character.skin?.capeHash}, cape size = ${capeBytes?.size ?: 0} bytes")
+        Logger.info(TAG, "Added character ${character.name} (${character.uuid}), skin hash = ${character.skin?.skinHash}, cape hash = ${character.skin?.capeHash}")
     }
 
 
@@ -244,14 +237,14 @@ class OfflineYggdrasilServer(
         val username = call.request.queryParameters["username"] ?: return buildJsonObject {
             put("error", JsonPrimitive("Missing username"))
         }.toString()
-        diag("Try find profile with username $username")
+        Logger.debug(TAG, "Try find profile with username $username")
 
         val character = charactersByName[username.lowercase()] ?: return buildJsonObject { }.toString().also {
-            diag("Profile with username $username not found")
+            Logger.debug(TAG, "Profile with username $username not found")
         }
 
         return character.toCompleteResponse("http://localhost:${getPort()}", this::sign).also {
-            diag("Found profile with username $username")
+            Logger.debug(TAG, "Found profile with username $username")
         }
     }
 
@@ -259,20 +252,20 @@ class OfflineYggdrasilServer(
         val uuid = call.parameters["uuid"] ?: return buildJsonObject {
             put("error", JsonPrimitive("Missing uuid"))
         }.toString()
-        diag("Try find profile with uuid $uuid")
+        Logger.debug(TAG, "Try find profile with uuid $uuid")
 
         val character = charactersByUuid[uuid.lowercase()] ?: return buildJsonObject { }.toString().also {
-            diag("Profile with uuid $uuid not found")
+            Logger.debug(TAG, "Profile with uuid $uuid not found")
         }
 
         return character.toCompleteResponse("http://localhost:${getPort()}", this::sign).also {
-            diag("Found profile with uuid $uuid")
+            Logger.debug(TAG, "Found profile with uuid $uuid")
         }
     }
 
     private suspend fun texture(call: ApplicationCall) {
         val hash = call.parameters["hash"] ?: return call.respond(HttpStatusCode.NotFound)
-        diag("Try find skin with hash $hash")
+        Logger.debug(TAG, "Try find skin with hash $hash")
 
         // 查找对应hash的皮肤或披风
         val match = charactersByUuid.values
@@ -285,12 +278,12 @@ class OfflineYggdrasilServer(
             }
 
         if (match != null) {
-            diag("Skin with hash $hash found")
+            Logger.debug(TAG, "Skin with hash $hash found")
             call.response.header("Cache-Control", "max-age=2592000, public")
             call.response.header("Etag", "\"$hash\"")
             call.respondBytes(match, ContentType.Image.PNG)
         } else {
-            diag("Skin with hash $hash not found")
+            Logger.debug(TAG, "Skin with hash $hash not found")
             call.respond(HttpStatusCode.NotFound)
         }
     }

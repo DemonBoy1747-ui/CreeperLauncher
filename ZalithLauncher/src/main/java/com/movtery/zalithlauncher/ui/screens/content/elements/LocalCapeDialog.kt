@@ -223,7 +223,7 @@ fun LocalCapeDialog(
                             modifier = Modifier.weight(1f),
                             enabled = !importing,
                             onClick = {
-                                picker.launch(arrayOf("image/png", "image/webp", "image/jpeg"))
+                                picker.launch(arrayOf("image/*"))
                             }
                         ) {
                             if (importing) {
