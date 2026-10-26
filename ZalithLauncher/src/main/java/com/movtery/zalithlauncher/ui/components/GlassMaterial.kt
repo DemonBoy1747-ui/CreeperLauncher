@@ -38,7 +38,6 @@ import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CardElevation
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
@@ -46,7 +45,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.foundation.shape.CircleShape
@@ -555,51 +553,6 @@ fun GlassRailItemBody(
                 contentAlignment = androidx.compose.ui.Alignment.Center
             ) { icon() }
             label()
-        }
-    }
-}
-
-
-/**
- * Dropdown menu that uses the launcher Liquid Glass sampler when available.
- *
- * Material3 still owns the popup positioning and dismissal behaviour. The glass surface is drawn
- * behind the menu content inside the popup, while the normal menu remains the fallback when glass
- * is disabled or the background cannot be sampled.
- */
-@Composable
-fun GlassDropdownMenu(
-    expanded: Boolean,
-    onDismissRequest: () -> Unit,
-    modifier: Modifier = Modifier,
-    shape: Shape = MaterialTheme.shapes.large,
-    shadowElevation: Dp = 3.dp,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = onDismissRequest,
-        modifier = modifier,
-        shape = shape,
-        shadowElevation = shadowElevation
-    ) {
-        val backdrop = liquidGlassPopupBackdrop()
-        if (backdrop == null) {
-            content()
-        } else {
-            Box {
-                LiquidGlassSurface(
-                    backdrop = backdrop,
-                    shape = shape,
-                    modifier = Modifier.matchParentSize(),
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = Color.White,
-                    blurRadius = 8.dp
-                ) {}
-                CompositionLocalProvider(LocalContentColor provides Color.White) {
-                    Column(content = content)
-                }
-            }
         }
     }
 }
