@@ -398,6 +398,34 @@ fun liquidGlassBackdrop(): PrismalBackdrop? {
 }
 
 /**
+ * Coordinate-correct sampler for glass drawn inside a Compose Popup (for example, a dropdown
+ * menu). Popup content lives in a separate window just like a dialog, so using the activity's
+ * raw layer would sample from the wrong origin.
+ */
+@Composable
+fun liquidGlassPopupBackdrop(): PrismalBackdrop? {
+    if (!AllSettings.launcherLiquidGlass.state) return null
+    val source = LocalLiquidGlassBackdrop.current ?: return null
+    val page = LocalLiquidGlassPage.current
+    val sampler = remember(source, page) {
+        DialogWindowBackdrop(
+            if (RECORD_PAGE_BEHIND_DIALOGS) page?.layer ?: source else source,
+            page
+        )
+    }
+
+    val background = LocalBackgroundViewModel.current
+    val videoBehindPopup = background != null && background.isValid && background.isVideo
+    val hostWindow = LocalContext.current.findHostWindow()
+    if (videoBehindPopup && hostWindow != null) {
+        LaunchedEffect(sampler, hostWindow) {
+            captureWindowSnapshots(hostWindow, sampler)
+        }
+    }
+    return sampler
+}
+
+/**
  * 统一的 Liquid Glass 表面，所有使用该效果的组件都应通过它绘制
  * @param containerColor 叠加在玻璃上的容器色（会被降低不透明度）
  * @param contentColor 内容颜色
