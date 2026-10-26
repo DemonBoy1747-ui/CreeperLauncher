@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -404,20 +405,37 @@ private fun VersionHeader(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    SimpleTextInputField(
-                        modifier = Modifier.weight(1f),
-                        value = versionFilter.id,
-                        onValueChange = { onVersionFilterChange(versionFilter.copy(id = it)) },
-                        color = itemContainerColor,
-                        contentColor = itemContentColor,
-                        singleLine = true,
-                        hint = {
-                            Text(
-                                text = stringResource(R.string.generic_search),
-                                style = TextStyle(color = itemContentColor).copy(fontSize = 12.sp)
-                            )
+                    //Liquid Glass: the search field is its own glass box instead of a flat pill
+                    val searchShape = RoundedCornerShape(percent = 50)
+                    val searchField = @Composable { fieldModifier: Modifier ->
+                        SimpleTextInputField(
+                            modifier = fieldModifier,
+                            value = versionFilter.id,
+                            onValueChange = { onVersionFilterChange(versionFilter.copy(id = it)) },
+                            color = itemContainerColor,
+                            contentColor = itemContentColor,
+                            shape = searchShape,
+                            singleLine = true,
+                            hint = {
+                                Text(
+                                    text = stringResource(R.string.generic_search),
+                                    style = TextStyle(color = itemContentColor).copy(fontSize = 12.sp)
+                                )
+                            }
+                        )
+                    }
+                    if (liquidGlassBackdrop() != null) {
+                        GlassItemSurface(
+                            modifier = Modifier.weight(1f),
+                            shape = searchShape,
+                            color = Color.Transparent,
+                            contentColor = Color.White
+                        ) {
+                            searchField(Modifier.fillMaxWidth())
                         }
-                    )
+                    } else {
+                        searchField(Modifier.weight(1f))
+                    }
 
                     IconButton(
                         onClick = onRefreshClick

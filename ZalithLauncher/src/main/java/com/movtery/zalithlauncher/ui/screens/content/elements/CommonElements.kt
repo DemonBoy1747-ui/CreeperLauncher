@@ -45,6 +45,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import com.movtery.zalithlauncher.ui.components.liquidGlassBackdrop
 import com.movtery.zalithlauncher.ui.components.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -628,6 +629,13 @@ fun MemoryPreview(
             if (availableMemory > 0) preview.toFloat() / availableMemory else 0f
         } else 0f
     }
+
+    //Liquid Glass: flat white bar (no glass effect) to match the white slider
+    val glass = liquidGlassBackdrop() != null && preview != null
+    val mainColor = if (glass) Color.White.copy(alpha = 0.92f) else mainColor
+    val backgroundColor = if (glass) Color.White.copy(alpha = 0.28f) else backgroundColor
+    val textColorOnMemory = if (glass) Color.Black.copy(alpha = 0.8f) else textColorOnMemory
+    val textColorOnBackground = if (glass) Color.White else textColorOnBackground
 
     //内存进度条直观展示
     Box(
