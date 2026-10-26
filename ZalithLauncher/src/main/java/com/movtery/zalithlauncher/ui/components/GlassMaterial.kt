@@ -576,8 +576,6 @@ fun GlassDropdownMenu(
     shadowElevation: Dp = 3.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val backdrop = liquidGlassBackdrop()
-
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
@@ -585,6 +583,7 @@ fun GlassDropdownMenu(
         shape = shape,
         shadowElevation = shadowElevation
     ) {
+        val backdrop = liquidGlassPopupBackdrop()
         if (backdrop == null) {
             content()
         } else {
