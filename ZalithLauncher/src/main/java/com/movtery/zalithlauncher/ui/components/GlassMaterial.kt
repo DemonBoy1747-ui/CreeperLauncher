@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.components
 
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.ButtonColors
+import androidx.compose.ui.window.PopupProperties
+import androidx.compose.material3.MenuDefaults
+import androidx.compose.material3.ExposedDropdownMenu as M3ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuBoxScope
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.CardColors
@@ -293,6 +300,47 @@ fun IconButton(
         shape = shape,
         content = content
     )
+}
+
+/**
+ * Drop-in for Material3 FloatingActionButton. With Liquid Glass on it is a glass box with the
+ * shared item tint (same as every other button) and white content; otherwise it delegates.
+ */
+@Composable
+fun FloatingActionButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    shape: Shape = androidx.compose.material3.FloatingActionButtonDefaults.shape,
+    containerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    contentColor: Color = contentColorFor(containerColor),
+    content: @Composable () -> Unit
+) {
+    val backdrop = liquidGlassBackdrop()
+    if (backdrop != null) {
+        LiquidGlassSurface(
+            backdrop = backdrop,
+            shape = shape,
+            modifier = modifier
+                .size(56.dp)
+                .liquidGlassPressAnimation(),
+            containerColor = itemColor(),
+            contentColor = Color.White,
+            onClick = onClick
+        ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                content()
+            }
+        }
+    } else {
+        androidx.compose.material3.FloatingActionButton(
+            onClick = onClick,
+            modifier = modifier,
+            shape = shape,
+            containerColor = containerColor,
+            contentColor = contentColor,
+            content = content
+        )
+    }
 }
 
 /** True when a Surface/Card should become glass: a real, visible, shaped container. */
