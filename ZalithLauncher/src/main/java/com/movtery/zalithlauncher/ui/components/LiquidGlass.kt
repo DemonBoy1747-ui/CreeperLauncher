@@ -21,6 +21,25 @@ package com.movtery.zalithlauncher.ui.components
 import androidx.compose.foundation.background
 import com.styropyr0.prismal.sources.prismalGlassLayer
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.ui.layout.Layout
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -329,20 +348,14 @@ private suspend fun captureWindowSnapshots(window: Window, sampler: DialogWindow
 }
 
 /**
- * Drop-in for [Dialog]. With Liquid Glass on, glass inside the dialog samples the launcher page
- * behind the dialog at the correct position instead of the top-left of the wallpaper.
+ * Window-corrected glass sampler for an overlay window (dialog or popup), or null when Liquid Glass
+ * is off. While it is in the composition the launcher page counts as having an open overlay, and
+ * with a video wallpaper live copies of the launcher window feed the sampler.
  */
 @Composable
-fun GlassDialog(
-    onDismissRequest: () -> Unit,
-    properties: DialogProperties = DialogProperties(),
-    content: @Composable () -> Unit
-) {
+private fun rememberGlassWindowSampler(): DialogWindowBackdrop? {
     val record = LocalLiquidGlassBackdrop.current
-    if (record == null || !AllSettings.launcherLiquidGlass.state) {
-        Dialog(onDismissRequest = onDismissRequest, properties = properties, content = content)
-        return
-    }
+    if (record == null || !AllSettings.launcherLiquidGlass.state) return null
 
     val page = LocalLiquidGlassPage.current
     if (page != null) {
@@ -363,6 +376,24 @@ fun GlassDialog(
         LaunchedEffect(sampler, hostWindow) {
             captureWindowSnapshots(hostWindow, sampler)
         }
+    }
+    return sampler
+}
+
+/**
+ * Drop-in for [Dialog]. With Liquid Glass on, glass inside the dialog samples the launcher page
+ * behind the dialog at the correct position instead of the top-left of the wallpaper.
+ */
+@Composable
+fun GlassDialog(
+    onDismissRequest: () -> Unit,
+    properties: DialogProperties = DialogProperties(),
+    content: @Composable () -> Unit
+) {
+    val sampler = rememberGlassWindowSampler()
+    if (sampler == null) {
+        Dialog(onDismissRequest = onDismissRequest, properties = properties, content = content)
+        return
     }
 
     Dialog(onDismissRequest = onDismissRequest, properties = properties) {
@@ -640,6 +671,127 @@ fun LiquidGlassBar(
             blurRadius = 12.dp
         ) {
             content()
+        }
+    }
+}
+
+
+/** Places a menu popup under its anchor, flipping above or clamping when it would leave the window. */
+private class GlassMenuPositionProvider(private val offset: IntOffset) : PopupPositionProvider {
+    override fun calculatePosition(
+        anchorBounds: IntRect,
+        windowSize: IntSize,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize
+    ): IntOffset {
+        val maxX = (windowSize.width - popupContentSize.width).coerceAtLeast(0)
+        val maxY = (windowSize.height - popupContentSize.height).coerceAtLeast(0)
+        val x = if (layoutDirection == LayoutDirection.Ltr) {
+            anchorBounds.left + offset.x
+        } else {
+            anchorBounds.right - popupContentSize.width - offset.x
+        }
+        val below = anchorBounds.bottom + offset.y
+        val above = anchorBounds.top - popupContentSize.height - offset.y
+        val y = when {
+            below + popupContentSize.height <= windowSize.height -> below
+            above >= 0 -> above
+            else -> maxY
+        }
+        return IntOffset(x.coerceIn(0, maxX), y.coerceIn(0, maxY))
+    }
+}
+
+/**
+ * Drop-in for Material3 DropdownMenu. With Liquid Glass on, the menu is its own popup window drawn
+ * as a glass panel (same tint and blur as dialogs) that samples the launcher page behind it with the
+ * window-corrected sampler. Material3's menu is not reused here: its opaque container would sit
+ * behind the glass and show up as a white or blurred patch. Items must come from [DropdownMenuItem]
+ * so their text is white.
+ */
+@Composable
+fun DropdownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
+    shape: Shape = MaterialTheme.shapes.extraSmall,
+    shadowElevation: Dp = 3.dp,
+    properties: PopupProperties = PopupProperties(focusable = true),
+    matchAnchorWidth: Boolean = false,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val glass = LocalLiquidGlassBackdrop.current != null && AllSettings.launcherLiquidGlass.state
+    if (!glass) {
+        androidx.compose.material3.DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismissRequest,
+            modifier = modifier,
+            offset = offset,
+            shape = shape,
+            shadowElevation = shadowElevation,
+            properties = properties,
+            content = content
+        )
+        return
+    }
+    if (!expanded) return
+    GlassDropdownPopup(onDismissRequest, modifier, offset, shape, properties, matchAnchorWidth, content)
+}
+
+@Composable
+private fun GlassDropdownPopup(
+    onDismissRequest: () -> Unit,
+    modifier: Modifier,
+    offset: DpOffset,
+    shape: Shape,
+    properties: PopupProperties,
+    matchAnchorWidth: Boolean,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val sampler = rememberGlassWindowSampler() ?: return
+    val density = LocalDensity.current
+
+    //The popup is anchored to its parent layout; read that width for menus that match their field
+    var anchorWidthPx by remember { mutableIntStateOf(0) }
+    if (matchAnchorWidth) {
+        Layout(
+            content = {},
+            modifier = Modifier.onGloballyPositioned { anchorWidthPx = it.parentLayoutCoordinates?.size?.width ?: 0 }
+        ) { _, _ -> layout(0, 0) {} }
+    }
+    val widthModifier = if (matchAnchorWidth && anchorWidthPx > 0) {
+        Modifier.width(with(density) { anchorWidthPx.toDp() })
+    } else {
+        Modifier.sizeIn(minWidth = 112.dp, maxWidth = 280.dp)
+    }
+    val layoutDirection = LocalLayoutDirection.current
+    val positionProvider = remember(offset, density, layoutDirection) {
+        with(density) {
+            GlassMenuPositionProvider(IntOffset(offset.x.roundToPx(), offset.y.roundToPx()))
+        }
+    }
+
+    Popup(
+        popupPositionProvider = positionProvider,
+        onDismissRequest = onDismissRequest,
+        properties = properties
+    ) {
+        CompositionLocalProvider(LocalLiquidGlassSampler provides sampler) {
+            LiquidGlassSurface(
+                backdrop = sampler,
+                shape = shape,
+                modifier = modifier.then(widthModifier),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = Color.White
+            ) {
+                Column(
+                    modifier = (if (matchAnchorWidth) Modifier.fillMaxWidth() else Modifier.width(IntrinsicSize.Max))
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = 8.dp),
+                    content = content
+                )
+            }
         }
     }
 }

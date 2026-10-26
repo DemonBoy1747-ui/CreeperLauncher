@@ -604,3 +604,113 @@ fun GlassRailItemBody(
         }
     }
 }
+
+
+/** Menu item colors that stay white on the glass menu panel; Material3's default is a dark onSurface. */
+@Composable
+private fun glassMenuItemColors(): androidx.compose.material3.MenuItemColors =
+    MenuDefaults.itemColors(
+        textColor = Color.White,
+        leadingIconColor = Color.White,
+        trailingIconColor = Color.White,
+        disabledTextColor = Color.White.copy(alpha = DISABLED_ALPHA),
+        disabledLeadingIconColor = Color.White.copy(alpha = DISABLED_ALPHA),
+        disabledTrailingIconColor = Color.White.copy(alpha = DISABLED_ALPHA)
+    )
+
+/** Drop-in for Material3 DropdownMenuItem: white content on the glass [DropdownMenu]. */
+@Composable
+fun DropdownMenuItem(
+    text: @Composable () -> Unit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    leadingIcon: @Composable (() -> Unit)? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    enabled: Boolean = true,
+    colors: androidx.compose.material3.MenuItemColors = MenuDefaults.itemColors(),
+    contentPadding: PaddingValues = MenuDefaults.DropdownMenuItemContentPadding,
+    interactionSource: MutableInteractionSource? = null
+) {
+    val glass = liquidGlassBackdrop() != null
+    androidx.compose.material3.DropdownMenuItem(
+        text = text,
+        onClick = onClick,
+        modifier = modifier,
+        leadingIcon = leadingIcon,
+        trailingIcon = trailingIcon,
+        enabled = enabled,
+        colors = if (glass) glassMenuItemColors() else colors,
+        contentPadding = contentPadding,
+        interactionSource = interactionSource
+    )
+}
+
+/**
+ * Drop-in for Material3 ExposedDropdownMenu (e.g. search suggestions under a text field). With
+ * Liquid Glass on it is the glass [DropdownMenu], as wide as the field and not focusable so the
+ * field keeps the keyboard.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ExposedDropdownMenuBoxScope.ExposedDropdownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    shape: Shape = MaterialTheme.shapes.extraSmall,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    if (liquidGlassBackdrop() != null) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismissRequest,
+            modifier = modifier,
+            shape = shape,
+            properties = PopupProperties(focusable = false),
+            matchAnchorWidth = true,
+            content = content
+        )
+    } else {
+        M3ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismissRequest,
+            modifier = modifier,
+            shape = shape,
+            content = content
+        )
+    }
+}
+
+/** Checkbox colors: white while Liquid Glass is active (like [glassRadioColors]), Material defaults otherwise. */
+@Composable
+fun glassCheckboxColors(): CheckboxColors {
+    if (liquidGlassBackdrop() == null) return CheckboxDefaults.colors()
+    return CheckboxDefaults.colors(
+        checkedColor = Color.White,
+        uncheckedColor = Color.White,
+        checkmarkColor = Color.Black.copy(alpha = 0.75f),
+        disabledCheckedColor = Color.White.copy(alpha = DISABLED_ALPHA),
+        disabledUncheckedColor = Color.White.copy(alpha = DISABLED_ALPHA),
+        disabledIndeterminateColor = Color.White.copy(alpha = DISABLED_ALPHA)
+    )
+}
+
+/** Drop-in for Material3 Checkbox: white box and springy press while Liquid Glass is active. */
+@Composable
+fun Checkbox(
+    checked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)?,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    colors: CheckboxColors = CheckboxDefaults.colors(),
+    interactionSource: MutableInteractionSource? = null
+) {
+    val glass = liquidGlassBackdrop() != null
+    androidx.compose.material3.Checkbox(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        modifier = if (glass && enabled && onCheckedChange != null) modifier.liquidGlassPressAnimation() else modifier,
+        enabled = enabled,
+        colors = if (glass) glassCheckboxColors() else colors,
+        interactionSource = interactionSource
+    )
+}
