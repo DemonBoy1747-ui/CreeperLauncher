@@ -46,7 +46,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.DropdownMenu
+import com.movtery.zalithlauncher.ui.components.GlassDropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -731,7 +731,7 @@ private fun ShadersOperationMenu(
             )
         }
 
-        DropdownMenu(
+        GlassDropdownMenu(
             expanded = menuExpanded,
             shape = MaterialTheme.shapes.large,
             shadowElevation = 3.dp,
