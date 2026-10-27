@@ -5,6 +5,7 @@
 package com.movtery.zalithlauncher.recorder
 
 import android.content.Context
+import android.media.projection.MediaProjection
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,10 +24,13 @@ object RecorderController {
     var isPaused by mutableStateOf(false)
         private set
 
-    /** @return true if recording really started */
-    fun start(context: Context): Boolean {
+    /**
+     * @param projection when given, game audio is recorded as well (see [RecorderService]).
+     * @return true if recording really started
+     */
+    fun start(context: Context, projection: MediaProjection? = null): Boolean {
         if (isActive) return false
-        val started = GameRecorder.start(context)
+        val started = GameRecorder.start(context, RecorderConfig(), projection)
         isActive = started
         isPaused = false
         return started
@@ -49,5 +53,6 @@ object RecorderController {
         GameRecorder.stop(context)
         isActive = false
         isPaused = false
+        RecorderService.stop(context.applicationContext)
     }
 }

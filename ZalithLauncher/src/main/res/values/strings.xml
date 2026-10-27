@@ -438,7 +438,12 @@
     <string name="game_menu_recorder_started">Game recording started</string>
     <string name="game_menu_recorder_stopped">Recording stopped, saving video…</string>
     <string name="game_menu_recorder_start_failed">Could not start recording. The game screen may not be ready yet.</string>
-    <string name="game_menu_recorder_hint">Videos are saved to Movies/ZalithRecorder. Audio is not recorded yet.</string>
+    <string name="game_menu_recorder_hint">Videos are saved to Movies/ZalithRecorder. To record game sound, Android asks for screen recording permission every time you start.</string>
+    <string name="game_menu_recorder_consent_cancelled">Recording cancelled. Screen recording permission is needed to capture game sound.</string>
+    <string name="game_menu_recorder_audio_denied">Audio permission denied, recording without sound.</string>
+    <string name="recorder_notification_channel_name">Game recorder</string>
+    <string name="recorder_notification_title">Recording game</string>
+    <string name="recorder_notification_text">Recording game video and sound</string>
     <string name="game_menu_option_hotbar_rule">Hotbar Positioning Rule</string>
     <string name="game_menu_option_hotbar_rule_auto">Adaptive (May Be Inaccurate)</string>
     <string name="game_menu_option_hotbar_rule_custom">Custom</string>

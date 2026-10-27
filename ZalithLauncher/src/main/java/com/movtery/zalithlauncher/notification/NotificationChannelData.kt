@@ -44,4 +44,9 @@ enum class NotificationChannelData(
      */
     TASK_SERVICE_CHANNEL("task.service", { it.getString(R.string.notification_task_service_name) }, null, IMPORTANCE_LOW),
 
+    /**
+     * Screen recorder foreground service (holds the MediaProjection token for game audio)
+     */
+    RECORDING_SERVICE_CHANNEL("recording.service", { it.getString(R.string.recorder_notification_channel_name) }, null, IMPORTANCE_LOW),
+
 }
