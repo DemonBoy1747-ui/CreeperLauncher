@@ -61,6 +61,8 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.TransformOrigin
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -493,6 +495,30 @@ private class PendingRelease {
 
 private val GlassPressSpring = spring<Float>(dampingRatio = 0.48f, stiffness = 420f)
 
+/** Springy entrance for floating glass panels (menus, message dialogs): low damping gives the overshoot. */
+internal val GlassPopSpring = spring<Float>(dampingRatio = 0.55f, stiffness = 380f)
+
+/** Applies the pop animation [progress] (0 hidden .. 1 shown, may overshoot) to a floating glass panel. */
+internal fun Modifier.glassPopTransform(
+    progress: () -> Float,
+    transformOrigin: TransformOrigin = TransformOrigin.Center
+): Modifier = graphicsLayer {
+    val p = progress()
+    val scale = 0.8f + 0.2f * p
+    scaleX = scale
+    scaleY = scale
+    alpha = p.coerceIn(0f, 1f)
+    this.transformOrigin = transformOrigin
+}
+
+/** Pops a glass panel in with a springy scale and fade when it enters the composition. */
+@Composable
+fun Modifier.glassPopIn(transformOrigin: TransformOrigin = TransformOrigin.Center): Modifier {
+    val progress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { progress.animateTo(1f, GlassPopSpring) }
+    return glassPopTransform({ progress.value }, transformOrigin)
+}
+
 /** Minimum time a press stays visible so very quick taps still show the spring. */
 private const val MIN_PRESS_HOLD_MS = 90L
 
@@ -735,8 +761,20 @@ fun DropdownMenu(
         )
         return
     }
-    if (!expanded) return
-    GlassDropdownPopup(onDismissRequest, modifier, offset, shape, properties, matchAnchorWidth, content)
+    //Keep the popup composed while it springs out, then remove it
+    val progress = remember { Animatable(0f) }
+    var shown by remember { mutableStateOf(false) }
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            shown = true
+            progress.animateTo(1f, GlassPopSpring)
+        } else if (shown) {
+            progress.animateTo(0f, tween(durationMillis = 110))
+            shown = false
+        }
+    }
+    if (!shown) return
+    GlassDropdownPopup(onDismissRequest, modifier, offset, shape, properties, matchAnchorWidth, { progress.value }, content)
 }
 
 @Composable
@@ -747,6 +785,7 @@ private fun GlassDropdownPopup(
     shape: Shape,
     properties: PopupProperties,
     matchAnchorWidth: Boolean,
+    progress: () -> Float,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val sampler = rememberGlassWindowSampler() ?: return
@@ -781,7 +820,10 @@ private fun GlassDropdownPopup(
             LiquidGlassSurface(
                 backdrop = sampler,
                 shape = shape,
-                modifier = modifier.then(widthModifier),
+                modifier = Modifier
+                    .glassPopTransform(progress, TransformOrigin(0f, 0f))
+                    .then(modifier)
+                    .then(widthModifier),
                 containerColor = MaterialTheme.colorScheme.surface,
                 contentColor = Color.White
             ) {

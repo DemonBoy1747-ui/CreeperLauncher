@@ -336,7 +336,8 @@ fun OwnOutlinedTextField(
                 onValueChange(string)
             }
         },
-        modifier = if (imePanEnabled) modifier.imePanAnchor() else modifier,
+        modifier = (if (imePanEnabled) modifier.imePanAnchor() else modifier)
+            .then(if (liquidGlassBackdrop() != null) Modifier.liquidGlassPressAnimation(enabled) else Modifier),
         enabled = enabled,
         readOnly = readOnly,
         textStyle = textStyle,

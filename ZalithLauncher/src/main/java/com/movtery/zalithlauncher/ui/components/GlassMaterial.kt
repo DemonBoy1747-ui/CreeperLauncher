@@ -34,6 +34,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.ButtonColors
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.Animatable
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.material3.MenuDefaults
@@ -636,7 +645,7 @@ fun DropdownMenuItem(
     androidx.compose.material3.DropdownMenuItem(
         text = text,
         onClick = onClick,
-        modifier = modifier,
+        modifier = if (glass) modifier.liquidGlassPressAnimation(enabled) else modifier,
         leadingIcon = leadingIcon,
         trailingIcon = trailingIcon,
         enabled = enabled,
@@ -695,7 +704,11 @@ fun glassCheckboxColors(): CheckboxColors {
     )
 }
 
-/** Drop-in for Material3 Checkbox: white box and springy press while Liquid Glass is active. */
+/**
+ * Drop-in for Material3 Checkbox. With Liquid Glass on the box is white and squishes like a pinch
+ * while pressed, then springs back with an overshoot; a change of state (also a programmatic one,
+ * e.g. select all) pops it with the same spring.
+ */
 @Composable
 fun Checkbox(
     checked: Boolean,
@@ -705,13 +718,44 @@ fun Checkbox(
     colors: CheckboxColors = CheckboxDefaults.colors(),
     interactionSource: MutableInteractionSource? = null
 ) {
-    val glass = liquidGlassBackdrop() != null
+    if (liquidGlassBackdrop() == null) {
+        androidx.compose.material3.Checkbox(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = modifier,
+            enabled = enabled,
+            colors = colors,
+            interactionSource = interactionSource
+        )
+        return
+    }
+
+    val source = interactionSource ?: remember { MutableInteractionSource() }
+    val pressed by source.collectIsPressedAsState()
+    val scale = remember { Animatable(1f) }
+    val squish = remember { spring<Float>(dampingRatio = 0.35f, stiffness = 520f) }
+    LaunchedEffect(pressed) {
+        scale.animateTo(if (pressed) 0.78f else 1f, squish)
+    }
+    var firstComposition by remember { mutableStateOf(true) }
+    LaunchedEffect(checked) {
+        if (firstComposition) {
+            firstComposition = false
+        } else {
+            scale.snapTo(0.78f)
+            scale.animateTo(1f, squish)
+        }
+    }
+
     androidx.compose.material3.Checkbox(
         checked = checked,
         onCheckedChange = onCheckedChange,
-        modifier = if (glass && enabled && onCheckedChange != null) modifier.liquidGlassPressAnimation() else modifier,
+        modifier = modifier.graphicsLayer {
+            scaleX = scale.value
+            scaleY = scale.value
+        },
         enabled = enabled,
-        colors = if (glass) glassCheckboxColors() else colors,
-        interactionSource = interactionSource
+        colors = glassCheckboxColors(),
+        interactionSource = source
     )
 }

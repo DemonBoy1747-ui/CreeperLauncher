@@ -131,6 +131,7 @@ fun GlobalDialogHost() {
     }
 
     AlertDialog(
+        modifier = if (liquidGlassBackdrop() != null) Modifier.glassPopIn() else Modifier,
         onDismissRequest = {
             if (request.cancelable) GlobalDialogs.dismissCurrent()
         },
