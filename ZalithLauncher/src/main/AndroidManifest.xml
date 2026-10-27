@@ -149,13 +149,6 @@
         </service>
 
         <service
-            android:name=".recorder.RecorderService"
-            android:enabled="true"
-            android:exported="false"
-            android:process=":game"
-            android:foregroundServiceType="mediaProjection" />
-
-        <service
             android:name=".keepalive.TaskKeepAliveService"
             android:enabled="true"
             android:exported="false"
