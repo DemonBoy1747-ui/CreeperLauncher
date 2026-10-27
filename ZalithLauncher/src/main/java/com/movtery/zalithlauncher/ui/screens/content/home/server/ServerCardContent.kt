@@ -48,7 +48,7 @@ import com.movtery.zalithlauncher.ui.components.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import com.movtery.zalithlauncher.ui.components.FilledTonalButton
-import androidx.compose.material3.FilterChip
+import com.movtery.zalithlauncher.ui.components.CheckChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -727,7 +727,7 @@ private fun ServerCardSettingsDialog(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
-                            FilterChip(
+                            CheckChip(
                                 enabled = quickLaunch,
                                 selected = mode == ServerCardVersionMode.CURRENT,
                                 onClick = { mode = ServerCardVersionMode.CURRENT },
@@ -735,7 +735,7 @@ private fun ServerCardSettingsDialog(
                                     Text(text = stringResource(R.string.home_server_card_version_current))
                                 }
                             )
-                            FilterChip(
+                            CheckChip(
                                 enabled = quickLaunch,
                                 selected = mode == ServerCardVersionMode.SPECIFIC,
                                 onClick = { mode = ServerCardVersionMode.SPECIFIC },

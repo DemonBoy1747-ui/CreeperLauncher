@@ -18,7 +18,15 @@
 
 package com.movtery.zalithlauncher.ui.screens.game.elements
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -57,6 +65,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
+import com.movtery.zalithlauncher.recorder.RecorderController
+import com.movtery.zalithlauncher.recorder.RecorderService
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
@@ -92,6 +102,8 @@ private val controlTabs = listOf(
     IconTab(R.drawable.ic_mouse_filled, iconSize = 16.dp),
     //手势控制设置
     IconTab(R.drawable.ic_touch_app_filled),
+    //录制（Lite 新增）
+    IconTab(R.drawable.ic_movie_filled),
 )
 
 @Composable
@@ -164,6 +176,11 @@ fun GameMenuSubscreen(
                         }
                         1 -> ControlMouse(modifier = Modifier.fillMaxSize())
                         2 -> ControlGesture(modifier = Modifier.fillMaxSize())
+                        3 -> ControlRecorder(
+                            modifier = Modifier.fillMaxSize(),
+                            closeScreen = closeScreen,
+                            onShowToast = onShowToast
+                        )
                     }
                 }
             }
@@ -677,6 +694,161 @@ private fun ControlMouse(
                 suffix = "ms",
                 color = color,
                 contentColor = contentColor,
+            )
+        }
+    }
+}
+
+/**
+ * Panel perekam video game, satu baris tab dengan pengaturan mouse dan gestur.
+ * Status (merekam / dijeda) dibaca dari [RecorderController], jadi selalu sama dengan
+ * kondisi perekam yang sebenarnya.
+ */
+@Composable
+private fun ControlRecorder(
+    closeScreen: () -> Unit,
+    onShowToast: (AndroidStringText, Int) -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = cardColor(false),
+    contentColor: Color = onCardColor(),
+) {
+    val context = LocalContext.current
+    val listState = rememberLazyListState()
+    val isActive = RecorderController.isActive
+    val isPaused = RecorderController.isPaused
+
+    // Video only, used when game audio cannot be captured.
+    fun startVideoOnly() {
+        if (RecorderController.start(context)) {
+            onShowToast(androidText(R.string.game_menu_recorder_started), Toast.LENGTH_SHORT)
+            closeScreen()
+        } else {
+            onShowToast(androidText(R.string.game_menu_recorder_start_failed), Toast.LENGTH_LONG)
+        }
+    }
+
+    // Step 2: the system "start recording" prompt. Android only allows capturing the
+    // game's audio with it; RecorderService then starts the recorder with the token.
+    val requestScreenCapture = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data
+        if (result.resultCode == Activity.RESULT_OK && data != null) {
+            RecorderService.start(context, result.resultCode, data)
+            closeScreen()
+        } else {
+            onShowToast(androidText(R.string.game_menu_recorder_consent_cancelled), Toast.LENGTH_SHORT)
+        }
+    }
+
+    fun launchScreenCapturePrompt() {
+        val manager = context.getSystemService(MediaProjectionManager::class.java)
+        if (manager == null) {
+            startVideoOnly()
+        } else {
+            requestScreenCapture.launch(manager.createScreenCaptureIntent())
+        }
+    }
+
+    // Step 1: RECORD_AUDIO, which audio playback capture requires.
+    val requestAudioPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            launchScreenCapturePrompt()
+        } else {
+            onShowToast(androidText(R.string.game_menu_recorder_audio_denied), Toast.LENGTH_LONG)
+            startVideoOnly()
+        }
+    }
+
+    fun startRecordingWithAudio() {
+        when {
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.Q -> startVideoOnly()
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED -> launchScreenCapturePrompt()
+            else -> requestAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
+    LazyColumn(
+        modifier = modifier.lazyScrollWithBar(listState),
+        state = listState,
+        contentPadding = PaddingValues(all = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        //状态
+        item {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                text = stringResource(
+                    when {
+                        !isActive -> R.string.game_menu_recorder_status_idle
+                        isPaused -> R.string.game_menu_recorder_status_paused
+                        else -> R.string.game_menu_recorder_status_recording
+                    }
+                ),
+                style = MaterialTheme.typography.titleSmall
+            )
+        }
+        //开始录制
+        item {
+            MenuTextButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.game_menu_recorder_start),
+                enabled = !isActive,
+                onClick = { startRecordingWithAudio() },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+        //暂停 / 继续
+        item {
+            MenuTextButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(
+                    if (isPaused) R.string.game_menu_recorder_resume else R.string.game_menu_recorder_pause
+                ),
+                enabled = isActive,
+                onClick = {
+                    if (isPaused) {
+                        RecorderController.resume()
+                        closeScreen()
+                    } else {
+                        RecorderController.pause()
+                    }
+                },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+        //停止并保存
+        item {
+            MenuTextButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.game_menu_recorder_stop),
+                enabled = isActive,
+                onClick = {
+                    RecorderController.stop(context)
+                    onShowToast(
+                        androidText(R.string.game_menu_recorder_stopped),
+                        Toast.LENGTH_SHORT
+                    )
+                },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+        //说明
+        item {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                text = stringResource(R.string.game_menu_recorder_hint),
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }

@@ -38,7 +38,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
 import com.movtery.zalithlauncher.coroutine.Task
@@ -61,6 +60,8 @@ import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.buildAppendedText
+import com.movtery.zalithlauncher.ui.components.GlobalDialogHost
+import com.movtery.zalithlauncher.ui.components.GlobalDialogs
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.glassPageCapture
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -77,7 +78,6 @@ import com.movtery.zalithlauncher.ui.screens.main.crashlogs.ShareLinkOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
 import com.movtery.zalithlauncher.ui.theme.festivals.FestivalEffects
 import com.movtery.zalithlauncher.ui.theme.festivals.FestivalTapObserver
-import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.ui.vulkan_checker.VCOperation
 import com.movtery.zalithlauncher.ui.vulkan_checker.VulkanChecker
@@ -329,6 +329,9 @@ class MainActivity : BaseAppCompatActivity() {
                             festivals = festivals
                         )
                     }
+
+                    //Message dialogs requested from non-Compose code (errors, permissions, links)
+                    GlobalDialogHost()
 
                     //启动游戏操作流程
                     LaunchGameOperation(
@@ -592,22 +595,15 @@ class MainActivity : BaseAppCompatActivity() {
         }
 
         withContext(Dispatchers.Main) {
-            val builder = MaterialAlertDialogBuilder(this@MainActivity)
-                .setTitle(R.string.plugin_download_title)
-                .setMessage(R.string.plugin_download_summary)
-                .setPositiveButton("Github") { dialog, _ ->
-                    openLinkInternal(link.github)
-                    dialog.dismiss()
+            GlobalDialogs.show(
+                context = this@MainActivity,
+                title = getString(R.string.plugin_download_title),
+                message = getString(R.string.plugin_download_summary),
+                positive = GlobalDialogs.Action("Github") { openLinkInternal(link.github) },
+                negative = cloudDrive?.link?.let { driveLink ->
+                    GlobalDialogs.Action(getString(R.string.upgrade_cloud_drive)) { openLinkInternal(driveLink) }
                 }
-
-            cloudDrive?.link?.let { link ->
-                builder.setNegativeButton(R.string.upgrade_cloud_drive) { dialog, _ ->
-                    openLinkInternal(link)
-                    dialog.dismiss()
-                }
-            }
-
-            builder.showThemed()
+            )
         }
     }
 

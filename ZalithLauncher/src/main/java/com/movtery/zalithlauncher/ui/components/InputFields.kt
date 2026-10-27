@@ -262,6 +262,42 @@ fun SmallOutlinedEditField(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Outlined text field colors: white text, outline and hints while Liquid Glass is active (the field
+ * sits on glass like every other control), Material defaults otherwise.
+ */
+@Composable
+fun glassOutlinedTextFieldColors(): TextFieldColors {
+    if (liquidGlassBackdrop() == null) return OutlinedTextFieldDefaults.colors()
+    val disabled = Color.White.copy(alpha = 0.38f)
+    val muted = Color.White.copy(alpha = 0.7f)
+    return OutlinedTextFieldDefaults.colors(
+        focusedTextColor = Color.White,
+        unfocusedTextColor = Color.White,
+        disabledTextColor = disabled,
+        cursorColor = Color.White,
+        focusedBorderColor = Color.White,
+        unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+        disabledBorderColor = disabled,
+        focusedLabelColor = Color.White,
+        unfocusedLabelColor = muted,
+        disabledLabelColor = disabled,
+        focusedPlaceholderColor = muted,
+        unfocusedPlaceholderColor = muted,
+        disabledPlaceholderColor = disabled,
+        focusedLeadingIconColor = Color.White,
+        unfocusedLeadingIconColor = muted,
+        focusedTrailingIconColor = Color.White,
+        unfocusedTrailingIconColor = muted,
+        focusedSupportingTextColor = muted,
+        unfocusedSupportingTextColor = muted,
+        focusedPrefixColor = muted,
+        unfocusedPrefixColor = muted,
+        focusedSuffixColor = muted,
+        unfocusedSuffixColor = muted
+    )
+}
+
 @Composable
 fun OwnOutlinedTextField(
     value: String,
@@ -286,7 +322,7 @@ fun OwnOutlinedTextField(
     minLines: Int = 1,
     interactionSource: MutableInteractionSource? = null,
     shape: Shape = OutlinedTextFieldDefaults.shape,
-    colors: TextFieldColors = OutlinedTextFieldDefaults.colors(),
+    colors: TextFieldColors? = null,
     imePanEnabled: Boolean = true,
 ) {
     val focusManager = LocalFocusManager.current
@@ -300,7 +336,8 @@ fun OwnOutlinedTextField(
                 onValueChange(string)
             }
         },
-        modifier = if (imePanEnabled) modifier.imePanAnchor() else modifier,
+        modifier = (if (imePanEnabled) modifier.imePanAnchor() else modifier)
+            .then(if (liquidGlassBackdrop() != null) Modifier.liquidGlassPressAnimation(enabled) else Modifier),
         enabled = enabled,
         readOnly = readOnly,
         textStyle = textStyle,
@@ -347,7 +384,7 @@ fun OwnOutlinedTextField(
         minLines = minLines,
         interactionSource = interactionSource,
         shape = shape,
-        colors = colors,
+        colors = colors ?: glassOutlinedTextFieldColors(),
     )
 }
 
