@@ -42,7 +42,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.movtery.zalithlauncher.ui.components.Button
-import androidx.compose.material3.Checkbox
+import com.movtery.zalithlauncher.ui.components.Checkbox
 import com.movtery.zalithlauncher.ui.components.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme

@@ -70,7 +70,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.movtery.zalithlauncher.ui.components.GlobalDialogs
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.context.getFileName
@@ -83,7 +83,6 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.BaseFileItem
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
-import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.utils.animation.getAnimateTweenJellyBounce
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
@@ -408,12 +407,12 @@ private fun ImportFileOperation(
                             val messageString = errorMessage + "\n" + eString
 
                             withContext(Dispatchers.Main) {
-                                MaterialAlertDialogBuilder(context)
-                                    .setTitle(errorTitle)
-                                    .setMessage(messageString)
-                                    .setPositiveButton(R.string.generic_confirm) { dialog, _ ->
-                                        dialog.dismiss()
-                                    }.showThemed()
+                                GlobalDialogs.show(
+                                    context = context,
+                                    title = errorTitle,
+                                    message = messageString,
+                                    positive = GlobalDialogs.Action(context.getString(R.string.generic_confirm))
+                                )
                             }
                         }
                     }
