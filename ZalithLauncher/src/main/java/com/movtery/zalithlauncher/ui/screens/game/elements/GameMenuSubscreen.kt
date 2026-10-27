@@ -18,7 +18,15 @@
 
 package com.movtery.zalithlauncher.ui.screens.game.elements
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -58,6 +66,7 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.recorder.RecorderController
+import com.movtery.zalithlauncher.recorder.RecorderService
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
@@ -708,6 +717,60 @@ private fun ControlRecorder(
     val isActive = RecorderController.isActive
     val isPaused = RecorderController.isPaused
 
+    // Video only, used when game audio cannot be captured.
+    fun startVideoOnly() {
+        if (RecorderController.start(context)) {
+            onShowToast(androidText(R.string.game_menu_recorder_started), Toast.LENGTH_SHORT)
+            closeScreen()
+        } else {
+            onShowToast(androidText(R.string.game_menu_recorder_start_failed), Toast.LENGTH_LONG)
+        }
+    }
+
+    // Step 2: the system "start recording" prompt. Android only allows capturing the
+    // game's audio with it; RecorderService then starts the recorder with the token.
+    val requestScreenCapture = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val data = result.data
+        if (result.resultCode == Activity.RESULT_OK && data != null) {
+            RecorderService.start(context, result.resultCode, data)
+            closeScreen()
+        } else {
+            onShowToast(androidText(R.string.game_menu_recorder_consent_cancelled), Toast.LENGTH_SHORT)
+        }
+    }
+
+    fun launchScreenCapturePrompt() {
+        val manager = context.getSystemService(MediaProjectionManager::class.java)
+        if (manager == null) {
+            startVideoOnly()
+        } else {
+            requestScreenCapture.launch(manager.createScreenCaptureIntent())
+        }
+    }
+
+    // Step 1: RECORD_AUDIO, which audio playback capture requires.
+    val requestAudioPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            launchScreenCapturePrompt()
+        } else {
+            onShowToast(androidText(R.string.game_menu_recorder_audio_denied), Toast.LENGTH_LONG)
+            startVideoOnly()
+        }
+    }
+
+    fun startRecordingWithAudio() {
+        when {
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.Q -> startVideoOnly()
+            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+                PackageManager.PERMISSION_GRANTED -> launchScreenCapturePrompt()
+            else -> requestAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
     LazyColumn(
         modifier = modifier.lazyScrollWithBar(listState),
         state = listState,
@@ -736,21 +799,7 @@ private fun ControlRecorder(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.game_menu_recorder_start),
                 enabled = !isActive,
-                onClick = {
-                    if (RecorderController.start(context)) {
-                        onShowToast(
-                            androidText(R.string.game_menu_recorder_started),
-                            Toast.LENGTH_SHORT
-                        )
-                        //回到游戏继续操作
-                        closeScreen()
-                    } else {
-                        onShowToast(
-                            androidText(R.string.game_menu_recorder_start_failed),
-                            Toast.LENGTH_LONG
-                        )
-                    }
-                },
+                onClick = { startRecordingWithAudio() },
                 color = color,
                 contentColor = contentColor,
             )

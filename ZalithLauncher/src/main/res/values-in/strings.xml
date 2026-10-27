@@ -776,7 +776,12 @@
     <string name="game_menu_recorder_started">Perekaman game dimulai</string>
     <string name="game_menu_recorder_stopped">Perekaman dihentikan, video sedang disimpan…</string>
     <string name="game_menu_recorder_start_failed">Gagal memulai perekaman. Layar game mungkin belum siap.</string>
-    <string name="game_menu_recorder_hint">Video disimpan di Movies/ZalithRecorder. Audio belum direkam.</string>
+    <string name="game_menu_recorder_hint">Video disimpan di Movies/ZalithRecorder. Untuk merekam suara game, Android meminta izin rekam layar setiap kali mulai merekam.</string>
+    <string name="game_menu_recorder_consent_cancelled">Perekaman dibatalkan. Izin rekam layar diperlukan untuk merekam suara game.</string>
+    <string name="game_menu_recorder_audio_denied">Izin audio ditolak, merekam tanpa suara.</string>
+    <string name="recorder_notification_channel_name">Perekam game</string>
+    <string name="recorder_notification_title">Merekam game</string>
+    <string name="recorder_notification_text">Merekam video dan suara game</string>
     <string name="account_change_skin_failed_to_import">Gagal menyimpan file target dalam cache</string>
     <string name="account_change_skin_invalid">Ukuran piksel skin tidak valid, seharusnya 64x32 piksel atau 64x64 piksel</string>
     <string name="account_change_skin_uploading">Mengunggah file skin</string>
