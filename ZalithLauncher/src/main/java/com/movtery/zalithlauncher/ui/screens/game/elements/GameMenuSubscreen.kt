@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
+import com.movtery.zalithlauncher.recorder.RecorderController
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
@@ -92,6 +93,8 @@ private val controlTabs = listOf(
     IconTab(R.drawable.ic_mouse_filled, iconSize = 16.dp),
     //手势控制设置
     IconTab(R.drawable.ic_touch_app_filled),
+    //录制（Lite 新增）
+    IconTab(R.drawable.ic_movie_filled),
 )
 
 @Composable
@@ -164,6 +167,11 @@ fun GameMenuSubscreen(
                         }
                         1 -> ControlMouse(modifier = Modifier.fillMaxSize())
                         2 -> ControlGesture(modifier = Modifier.fillMaxSize())
+                        3 -> ControlRecorder(
+                            modifier = Modifier.fillMaxSize(),
+                            closeScreen = closeScreen,
+                            onShowToast = onShowToast
+                        )
                     }
                 }
             }
@@ -677,6 +685,121 @@ private fun ControlMouse(
                 suffix = "ms",
                 color = color,
                 contentColor = contentColor,
+            )
+        }
+    }
+}
+
+/**
+ * Panel perekam video game, satu baris tab dengan pengaturan mouse dan gestur.
+ * Status (merekam / dijeda) dibaca dari [RecorderController], jadi selalu sama dengan
+ * kondisi perekam yang sebenarnya.
+ */
+@Composable
+private fun ControlRecorder(
+    closeScreen: () -> Unit,
+    onShowToast: (AndroidStringText, Int) -> Unit,
+    modifier: Modifier = Modifier,
+    color: Color = cardColor(false),
+    contentColor: Color = onCardColor(),
+) {
+    val context = LocalContext.current
+    val listState = rememberLazyListState()
+    val isActive = RecorderController.isActive
+    val isPaused = RecorderController.isPaused
+
+    LazyColumn(
+        modifier = modifier.lazyScrollWithBar(listState),
+        state = listState,
+        contentPadding = PaddingValues(all = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        //状态
+        item {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                text = stringResource(
+                    when {
+                        !isActive -> R.string.game_menu_recorder_status_idle
+                        isPaused -> R.string.game_menu_recorder_status_paused
+                        else -> R.string.game_menu_recorder_status_recording
+                    }
+                ),
+                style = MaterialTheme.typography.titleSmall
+            )
+        }
+        //开始录制
+        item {
+            MenuTextButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.game_menu_recorder_start),
+                enabled = !isActive,
+                onClick = {
+                    if (RecorderController.start(context)) {
+                        onShowToast(
+                            androidText(R.string.game_menu_recorder_started),
+                            Toast.LENGTH_SHORT
+                        )
+                        //回到游戏继续操作
+                        closeScreen()
+                    } else {
+                        onShowToast(
+                            androidText(R.string.game_menu_recorder_start_failed),
+                            Toast.LENGTH_LONG
+                        )
+                    }
+                },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+        //暂停 / 继续
+        item {
+            MenuTextButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(
+                    if (isPaused) R.string.game_menu_recorder_resume else R.string.game_menu_recorder_pause
+                ),
+                enabled = isActive,
+                onClick = {
+                    if (isPaused) {
+                        RecorderController.resume()
+                        closeScreen()
+                    } else {
+                        RecorderController.pause()
+                    }
+                },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+        //停止并保存
+        item {
+            MenuTextButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = stringResource(R.string.game_menu_recorder_stop),
+                enabled = isActive,
+                onClick = {
+                    RecorderController.stop(context)
+                    onShowToast(
+                        androidText(R.string.game_menu_recorder_stopped),
+                        Toast.LENGTH_SHORT
+                    )
+                },
+                color = color,
+                contentColor = contentColor,
+            )
+        }
+        //说明
+        item {
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                text = stringResource(R.string.game_menu_recorder_hint),
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }

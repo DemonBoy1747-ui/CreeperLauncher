@@ -108,6 +108,8 @@ import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderLayer
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderOperation
 import com.movtery.zalithlauncher.ui.components.GameGlassBackdrop
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
+import com.movtery.zalithlauncher.recorder.RecorderController
+import com.movtery.zalithlauncher.recorder.GameSurfaceRegistry
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.utils.computeGameDisplayLayout
 import com.movtery.zalithlauncher.utils.computeGameRenderSize
@@ -539,6 +541,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                         },
                         lifecycleScope = lifecycleScope
                     )
+                    //Kontrol recorder ada di menu game (tab Recorder), bukan lagi tombol mengambang
                 }
             }
         }
@@ -658,6 +661,8 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     override fun onDestroy() {
         getSystemService(DisplayManager::class.java)?.unregisterDisplayListener(displayListener)
+        GameSurfaceRegistry.unregister()
+        RecorderController.stop(this)
         stopAllService()
         withHandler { onDestroy() }
         SdlBridge.reset()
@@ -980,6 +985,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                             // SDL 模式需要父 ViewGroup（输入法 EditText 附加用）
                             gameSurfaceView = this
                         }.also { surface ->
+                            GameSurfaceRegistry.register(surface)
                             applySizeToSurface = { width, height ->
                                 surface.holder.setFixedSize(width, height)
                             }
@@ -991,6 +997,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
                             surfaceTextureListener = this@VMActivity
                         }.also { texture ->
+                            GameSurfaceRegistry.register(texture)
                             gameSurfaceView = texture
                             applySizeToSurface = { width, height ->
                                 texture.surfaceTexture?.setDefaultBufferSize(width, height)

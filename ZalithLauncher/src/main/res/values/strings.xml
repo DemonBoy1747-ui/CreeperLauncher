@@ -429,6 +429,17 @@
     <string name="game_menu_option_menu_ball_opacity">Menu Overlay Opacity</string>
     <string name="game_menu_option_send_keycode">Send Keycode</string>
     <string name="game_menu_option_replacement_control">Replace Control Layout</string>
+    <string name="game_menu_recorder_status_idle">Recorder ready</string>
+    <string name="game_menu_recorder_status_recording">Recording</string>
+    <string name="game_menu_recorder_status_paused">Recording paused</string>
+    <string name="game_menu_recorder_start">Start Recording</string>
+    <string name="game_menu_recorder_pause">Pause</string>
+    <string name="game_menu_recorder_resume">Resume</string>
+    <string name="game_menu_recorder_stop">Stop and Save</string>
+    <string name="game_menu_recorder_started">Game recording started</string>
+    <string name="game_menu_recorder_stopped">Recording stopped, saving video…</string>
+    <string name="game_menu_recorder_start_failed">Could not start recording. The game screen may not be ready yet.</string>
+    <string name="game_menu_recorder_hint">Videos are saved to Movies/ZalithRecorder. Audio is not recorded yet.</string>
     <string name="game_menu_option_hotbar_rule">Hotbar Positioning Rule</string>
     <string name="game_menu_option_hotbar_rule_auto">Adaptive (May Be Inaccurate)</string>
     <string name="game_menu_option_hotbar_rule_custom">Custom</string>
