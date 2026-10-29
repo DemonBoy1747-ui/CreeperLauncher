@@ -13,7 +13,7 @@ plugins {
     id("com.movtery.buildkeys")
 }
 
-val zalithPackageName = "com.movetery.zalithlauncher"
+val zalithPackageName = "com.movtery.zalithlauncher"
 val launcherAPPName = project.findProperty("launcher_app_name") as? String ?: error("The \"launcher_app_name\" property is not set in gradle.properties.")
 val launcherName = project.findProperty("launcher_name") as? String ?: error("The \"launcher_name\" property is not set in gradle.properties.")
 val launcherShortName = project.findProperty("launcher_short_name") as? String ?: error("The \"launcher_short_name\" property is not set in gradle.properties.")
@@ -55,12 +55,12 @@ android {
             keyAlias = "movtery_zalith"
             keyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
         }
-        //Creeper: key milik sendiri. File dibuat CI dari secret CREEPER_KEYSTORE_BASE64 (atau taruh manual saat build lokal)
-        create("creeperRelease") {
-            storeFile = file("creeper_release.jks")
-            storePassword = System.getenv("CREEPER_STORE_PASSWORD") ?: ""
-            keyAlias = System.getenv("CREEPER_KEY_ALIAS") ?: "ray"
-            keyPassword = System.getenv("CREEPER_KEY_PASSWORD") ?: ""
+        //Ray: key milik sendiri. File dibuat CI dari secret RAY_KEYSTORE_BASE64 (atau taruh manual saat build lokal)
+        create("rayRelease") {
+            storeFile = file("ray_release.jks")
+            storePassword = System.getenv("RAY_STORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("RAY_KEY_ALIAS") ?: "ray"
+            keyPassword = System.getenv("RAY_KEY_PASSWORD") ?: ""
         }
         // Keep the same signing identity as the previously installed Lite APK.
         create("debugBuild") {
