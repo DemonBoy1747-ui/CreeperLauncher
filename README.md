@@ -26,7 +26,7 @@ When distributing a modified version, applicable requirements include:
 - Clearly label the app as an **unofficial modified version** on its startup screen or main interface.
 - Comply with the GPL-3.0 source-code and distribution requirements.
 
-RayLauncher does not claim ownership of the original project's code or third-party components.
+CreeperLauncher does not claim ownership of the original project's code or third-party components.
 
 ## Disclaimer
 
