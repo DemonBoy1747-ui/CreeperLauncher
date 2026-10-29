@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: Branch, tag or SHA to build (default: main)
+        description: "Branch, tag or SHA to build (default: main)"
         required: false
         type: string
         default: main
