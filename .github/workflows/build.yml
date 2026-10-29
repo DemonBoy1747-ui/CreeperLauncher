@@ -121,3 +121,4 @@ jobs:
         with:
           name: mapping (${{ matrix.arch }})
           path: ZalithLauncher/build/outputs/mapping/release/mapping.txt
+          
