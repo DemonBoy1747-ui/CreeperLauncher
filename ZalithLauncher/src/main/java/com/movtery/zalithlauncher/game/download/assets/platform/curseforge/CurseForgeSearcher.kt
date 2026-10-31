@@ -50,6 +50,11 @@ class CurseForgeSearcher(
     platform = Platform.CURSEFORGE,
     source = source
 ) {
+    private fun getCurseForgeHeaders(): List<Pair<String, Any?>> {
+        val key = com.movtery.zalithlauncher.BuildKeys.CURSEFORGE_API.trim().ifBlank { "$2a$10$1Z91gpCfwa3tIK9G3Y1q6.3t4T08e16CxmvmX8aEyNp0mqHe3tTyO" }
+        return listOf("x-api-key" to key)
+    }
+
     override suspend fun searchAssets(
         query: String,
         searchFilter: PlatformSearchFilter,
@@ -57,6 +62,7 @@ class CurseForgeSearcher(
     ): CurseForgeSearchResult {
         return httpGetJson(
             url = "$api/mods/search",
+            headers = getCurseForgeHeaders(),
             parameters = searchFilter.toCurseForgeRequest(
                 query = query,
                 platformClasses = platformClasses
@@ -66,7 +72,8 @@ class CurseForgeSearcher(
 
     override suspend fun getProject(projectID: String): CurseForgeProject {
         val project = httpGetJson<CurseForgeProject>(
-            url = "$api/mods/$projectID"
+            url = "$api/mods/$projectID",
+            headers = getCurseForgeHeaders()
         )
         if (!project.isApproved()) throw NotFoundException("The project {$projectID} is not in a publicly available state.")
         return project
@@ -80,7 +87,8 @@ class CurseForgeSearcher(
         fileID: String,
     ): CurseForgeVersion {
         return httpGetJson(
-            url = "$api/mods/$projectID/files/$fileID"
+            url = "$api/mods/$projectID/files/$fileID",
+            headers = getCurseForgeHeaders()
         )
     }
 
@@ -95,6 +103,7 @@ class CurseForgeSearcher(
         pageSize: Int = 100
     ): CurseForgeVersions = httpGetJson(
         url = "$api/mods/$projectID/files",
+        headers = getCurseForgeHeaders(),
         parameters = Parameters.build {
             append("index", index.toString())
             append("pageSize", pageSize.toString())
