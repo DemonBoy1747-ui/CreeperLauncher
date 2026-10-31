@@ -129,7 +129,7 @@ fun AboutInfoScreen(
                         //Lite: maintainer fork ini; tombol sponsor dikosongkan dulu
                         ButtonIconItem(
                             icon = painterResource(R.drawable.img_avatar_keda),
-                            title = "Keda",
+                            title = "DemonBoy1747",
                             text = stringResource(R.string.about_launcher_maintainer_keda_text),
                             button = {}
                         )
