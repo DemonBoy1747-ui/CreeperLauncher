@@ -82,7 +82,7 @@ jobs:
       - name: Build APK for ${{ matrix.abi }}
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assembleRelease -Darch=${{ matrix.arch }}
+          ./gradlew ZalithLauncher:assembleDebug -Darch=${{ matrix.arch }}
 
       - name: Rename APK (CreeperLauncher-<upstream>-<patch>-<abi>.apk)
         shell: bash
