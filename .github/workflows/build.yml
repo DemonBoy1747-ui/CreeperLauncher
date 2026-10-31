@@ -90,7 +90,7 @@ jobs:
           ABI: ${{ matrix.abi }}
         run: |
           set -euo pipefail
-          APK_DIR="ZalithLauncher/build/outputs/apk/release"
+          APK_DIR="ZalithLauncher/build/outputs/apk/debug"
           RAW_VERSION="$(grep -E '^launcher_version_name=' ZalithLauncher/gradle.properties | head -n1 | cut -d= -f2- | tr -d '\r')"
           if [[ ! "$RAW_VERSION" =~ ^([0-9][0-9A-Za-z._]*)[[:space:]]+Ray[[:space:]]+(.+)$ ]]; then
             echo "launcher_version_name must look like '<upstream> Ray <patch>', got: '$RAW_VERSION'"
