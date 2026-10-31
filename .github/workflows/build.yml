@@ -113,12 +113,12 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: ZalithLauncher/build/outputs/apk/release/${{ env.APK_NAME }}
+          path: ZalithLauncher/build/outputs/apk/debug/${{ env.APK_NAME }}
 
       - name: Upload Release Mapping for ${{ matrix.abi }}
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: mapping (${{ matrix.arch }})
-          path: ZalithLauncher/build/outputs/mapping/release/mapping.txt
+          path: ZalithLauncher/build/outputs/mapping/debug/mapping.txt
           
