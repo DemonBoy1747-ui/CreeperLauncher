@@ -51,7 +51,7 @@ class CurseForgeSearcher(
     source = source
 ) {
     private fun getCurseForgeHeaders(): List<Pair<String, Any?>> {
-        val key = com.movtery.zalithlauncher.BuildKeys.CURSEFORGE_API.trim().ifBlank { "$2a$10$WbAdkl3ozuMGhWodY1BuReM36htHoJI1gOzLkV2iXnVcR.bgk2s3W" }
+        val key = com.movtery.zalithlauncher.BuildKeys.CURSEFORGE_API.trim().ifBlank {"$2a$10$WbAdkl3ozuMGhWodY1BuReM36htHoJI1gOzLkV2iXnVcR.bgk2s3W"}
         return listOf("x-api-key" to key)
     }
 
