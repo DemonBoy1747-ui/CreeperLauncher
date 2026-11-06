@@ -66,6 +66,11 @@ class CurseForgeManifest(
         val url: String? = null,
         @SerializedName("required")
         val required: Boolean
-    ) 
+    ) {
+        fun getFileUrl(): String? {
+            return url ?: fileName?.let {
+                "https://edge.forgecdn.net/files/${fileID / 1000}/${fileID % 1000}/$it"
+            }
+        }
     }
 }
