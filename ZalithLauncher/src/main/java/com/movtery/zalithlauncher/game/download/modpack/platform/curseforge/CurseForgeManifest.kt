@@ -66,9 +66,6 @@ class CurseForgeManifest(
         val url: String? = null,
         @SerializedName("required")
         val required: Boolean
-    ) {
-        fun getFileUrl(): String? {
-            return url ?: fileName?.let { curseForgeCDNUrl(fileID, it) }
-        }
+    ) 
     }
 }
